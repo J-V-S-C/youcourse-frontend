@@ -1,156 +1,184 @@
-"use client";
+'use client';
 
-import { register } from "@/lib/user/user.service";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  Link as MuiLink,
+  TextField,
+  Typography,
+} from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { register } from '@/lib/user/user.service';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function RegisterForm() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
+    setError('');
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      setLoading(false);
+      setError('As senhas não coincidem.');
       return;
     }
 
+    setLoading(true);
     try {
       await register({ name, email, password });
-      router.push("/login");
+      router.push('/login');
     } catch {
-      setError("Failed to register. Please try again.");
+      setError('Falha ao criar conta. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
+  const passwordAdornment = (
+    <InputAdornment position="end">
+      <IconButton
+        aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+        onClick={() => setShowPassword((v) => !v)}
+        edge="end"
+      >
+        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+      </IconButton>
+    </InputAdornment>
+  );
+
   return (
-    <div className="max-w-md mx-auto mt-8">
-      <form onSubmit={handleSubmit}>
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
-        {error && <div className="mb-4 text-red-500">{error}</div>}
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      noValidate
+      sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
+    >
+      <Box sx={{ textAlign: 'center', mb: 1 }}>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 800, color: 'var(--foreground)', letterSpacing: '-0.5px' }}
+        >
+          Crie sua conta
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'var(--muted)', mt: 0.5 }}>
+          Junte-se a milhares de aprendizes
+        </Typography>
+      </Box>
 
-        <div className="mb-4 relative">
-          <label
-            className="block text-white text-sm font-bold mb-2"
-            htmlFor="name"
-          >
-            Name
-          </label>
-          <div className="flex items-center border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline bg-white">
-            <input
-              className="appearance-none bg-transparent border-none w-full text-black leading-tight focus:outline-none"
-              id="name"
-              type="text"
-              name="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Full Name"
-              disabled={loading}
-              required
-            />
-          </div>
-        </div>
+      {error && (
+        <Alert severity="error" sx={{ borderRadius: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-        <div className="mb-4 relative">
-          <label
-            className="block text-white text-sm font-bold mb-2"
-            htmlFor="email"
-          >
-            Email
-          </label>
-          <div className="flex items-center border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline bg-white">
-            <input
-              className="appearance-none bg-transparent border-none w-full text-black leading-tight focus:outline-none"
-              id="email"
-              type="email"
-              name="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              disabled={loading}
-              required
-            />
-          </div>
-        </div>
+      <TextField
+        id="register-name"
+        label="Nome completo"
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        disabled={loading}
+        required
+        fullWidth
+        autoComplete="name"
+        slotProps={{ htmlInput: { 'aria-label': 'Nome completo' } }}
+      />
 
-        <div className="mb-4 relative">
-          <label
-            className="block text-white text-sm font-bold mb-2"
-            htmlFor="password"
-          >
-            Password
-          </label>
-          <div className="flex items-center border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline bg-white">
-            <input
-              className="appearance-none bg-transparent border-none w-full text-black leading-tight focus:outline-none"
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="********"
-              disabled={loading}
-              required
-            />
-          </div>
-        </div>
+      <TextField
+        id="register-email"
+        label="E-mail"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        disabled={loading}
+        required
+        fullWidth
+        autoComplete="email"
+        slotProps={{ htmlInput: { 'aria-label': 'E-mail' } }}
+      />
 
-        <div className="mb-6 relative">
-          <label
-            className="block text-white text-sm font-bold mb-2"
-            htmlFor="confirmPassword"
-          >
-            Confirm Password
-          </label>
-          <div className="flex items-center border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline bg-white">
-            <input
-              className="appearance-none bg-transparent border-none w-full text-black leading-tight focus:outline-none"
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="********"
-              disabled={loading}
-              required
-            />
-          </div>
-        </div>
+      <TextField
+        id="register-password"
+        label="Senha"
+        type={showPassword ? 'text' : 'password'}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        disabled={loading}
+        required
+        fullWidth
+        autoComplete="new-password"
+        slotProps={{
+          htmlInput: { 'aria-label': 'Senha' },
+          input: { endAdornment: passwordAdornment },
+        }}
+      />
 
-        <div className="flex items-center justify-between mb-4">
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full disabled:opacity-50"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? "Signing Up..." : "Sign Up"}
-          </button>
-        </div>
+      <TextField
+        id="register-confirm-password"
+        label="Confirme a senha"
+        type={showPassword ? 'text' : 'password'}
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        disabled={loading}
+        required
+        fullWidth
+        autoComplete="new-password"
+        error={!!confirmPassword && password !== confirmPassword}
+        helperText={
+          !!confirmPassword && password !== confirmPassword ? 'As senhas não coincidem' : ''
+        }
+        slotProps={{ htmlInput: { 'aria-label': 'Confirme a senha' } }}
+      />
 
-        <div className="text-center my-4">
-          <span className="text-gray-400">or</span>
-        </div>
+      <Button
+        type="submit"
+        variant="contained"
+        fullWidth
+        size="large"
+        disabled={loading}
+        sx={{
+          bgcolor: 'var(--primary)',
+          '&:hover': { bgcolor: 'var(--primary-hover)' },
+          fontWeight: 700,
+          py: 1.5,
+          borderRadius: 2,
+          fontSize: '1rem',
+          mt: 0.5,
+        }}
+        startIcon={loading ? <CircularProgress size={18} color="inherit" /> : null}
+      >
+        {loading ? 'Criando conta...' : 'Criar conta'}
+      </Button>
 
-        <div className="flex items-center justify-between mb-4">
-          <button
-            className="bg-gray-700 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full disabled:opacity-50"
-            type="button"
-            onClick={() => router.push("/login")}
-            disabled={loading}
-          >
-            Back to Login
-          </button>
-        </div>
-      </form>
-    </div>
+      <Typography variant="body2" sx={{ textAlign: 'center', color: 'var(--muted)' }}>
+        Já tem uma conta?{' '}
+        <MuiLink
+          component={Link}
+          href="/login"
+          sx={{
+            color: 'var(--primary)',
+            fontWeight: 600,
+            textDecoration: 'none',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+        >
+          Entrar
+        </MuiLink>
+      </Typography>
+    </Box>
   );
 }

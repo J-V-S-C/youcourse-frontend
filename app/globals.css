@@ -1,26 +1,50 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+:root,
+[data-theme='light'] {
+  --background: #f8fafc; /* Slate 50 */
+  --foreground: #0f172a; /* Slate 900 */
+  --surface: #ffffff; /* Cards de cursos, modais, dropdowns */
+  --border: #e2e8f0; /* Slate 200: Divisórias e bordas de cards */
+
+  --primary: #4f46e5; /* Indigo 600: Botões de compra, matricular, links principais */
+  --primary-hover: #4338ca;
+
+  --secondary: #10b981; /* Emerald 500: Tags de "Gratuito", progresso concluído */
+  --secondary-hover: #059669;
+
+  --accent: #f59e0b; /* Amber 500: Estrelas de avaliação, ícones de destaque */
+  --muted: #64748b; /* Slate 500: Textos secundários, descrições de cursos */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+[data-theme='dark'] {
+  --background: #0f172a; /* Slate 900 */
+  --foreground: #f8fafc; /* Slate 50 */
+  --surface: #1e293b; /* Slate 800 */
+  --border: #334155; /* Slate 700 */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --primary: #6366f1; /* Indigo 500 */
+  --primary-hover: #818cf8;
+
+  --secondary: #34d399; /* Emerald 400 */
+  --secondary-hover: #10b981;
+
+  --accent: #fbbf24; /* Amber 400 */
+  --muted: #94a3b8; /* Slate 400 */
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  /* Transição suave ao alternar temas */
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }

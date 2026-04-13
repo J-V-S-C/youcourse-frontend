@@ -1,17 +1,15 @@
-import LoginForm from "../components/LoginForm";
+import LoginForm from '../components/LoginForm';
+import AuthPageLayout from '../components/auth/AuthPageLayout';
 
 export const metadata = {
-  title: "Login - Youcourse",
-  description: "Sign in to your account",
+  title: 'Entrar — YouCourse',
+  description: 'Entre na sua conta YouCourse',
 };
 
-export default function Page() {
+export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full">
-        <h2 className="text-3xl font-bold text-center mb-8">Sign In</h2>
-        <LoginForm />
-      </div>
-    </div>
+    <AuthPageLayout maxWidth={440}>
+      <LoginForm />
+    </AuthPageLayout>
   );
 }
