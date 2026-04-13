@@ -15,15 +15,16 @@ export const metadata = {
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
 
-  if (!session || !session.accessToken || session.error) {
+  if (!session?.accessToken) {
     redirect('/login');
   }
 
   const user = await getUserProfile(session.accessToken);
 
-  if (!user){
-    redirect('/login')
+  if (!user) {
+    redirect('/login');
   }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'var(--background)' }}>
       <Navbar />

@@ -3,8 +3,11 @@
 import { Box, Button, Container, Typography } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 export default function HeroSection() {
+  const { data: session, status } = useSession();
+
   return (
     <Box
       component="section"
@@ -57,30 +60,62 @@ export default function HeroSection() {
             fontSize: { xs: '1rem', md: '1.2rem' },
           }}
         >
-          Explore cursos criados por especialistas e dê o próximo passo na sua carreira.
+          Explore cursos criados pela comunidade e dê o próximo passo na sua
+          carreira.
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button
-            component={Link}
-            href="/register"
-            variant="contained"
-            size="large"
-            endIcon={<ArrowForwardIcon />}
-            sx={{
-              bgcolor: '#fff',
-              color: 'var(--primary)',
-              fontWeight: 700,
-              px: 4,
-              py: 1.5,
-              borderRadius: 2,
-              fontSize: '1rem',
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
-              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-            }}
-          >
-            Comece grátis
-          </Button>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          {status === 'authenticated' ? (
+            <Button
+              component={Link}
+              href="/courses"
+              variant="contained"
+              size="large"
+              endIcon={<ArrowForwardIcon />}
+              sx={{
+                bgcolor: '#fff',
+                color: 'var(--primary)',
+                fontWeight: 700,
+                px: 4,
+                py: 1.5,
+                borderRadius: 2,
+                fontSize: '1rem',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
+                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              }}
+            >
+              Acessar Seus Cursos
+            </Button>
+          ) : (
+            <Button
+              component={Link}
+              href="/register"
+              variant="contained"
+              size="large"
+              endIcon={<ArrowForwardIcon />}
+              sx={{
+                bgcolor: '#fff',
+                color: 'var(--primary)',
+                fontWeight: 700,
+                px: 4,
+                py: 1.5,
+                borderRadius: 2,
+                fontSize: '1rem',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
+                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              }}
+            >
+              Comece grátis
+            </Button>
+          )}
+
           <Button
             component={Link}
             href="#catalogo"

@@ -7,7 +7,8 @@ import { fetchCourses } from '@/lib/courses/course.service';
 
 export const metadata = {
   title: 'YouCourse — Aprenda o que quiser',
-  description: 'Portal de cursos online. Explore, aprenda e cresça com os melhores instrutores.',
+  description:
+    'Portal de cursos online. Explore, aprenda e cresça com cursos desenvolvidos pela comunidade.',
 };
 
 export default async function HomePage() {
@@ -31,7 +32,11 @@ export default async function HomePage() {
             <Typography
               component="h2"
               variant="h4"
-              sx={{ fontWeight: 800, color: 'var(--foreground)', letterSpacing: '-0.5px' }}
+              sx={{
+                fontWeight: 800,
+                color: 'var(--foreground)',
+                letterSpacing: '-0.5px',
+              }}
             >
               Catálogo de Cursos
             </Typography>

@@ -5,7 +5,6 @@ para consumir os dados do usuário.
 /api: Destinado à criação de endpoints de backend dentro do próprio Next.js (Route Handlers). 
 Serve para receber requisições, não para armazenar as funções que fazem as requisições à sua API (NestJS).
 */
-
 export async function post<T>(
   url: string,
   body?: unknown,
@@ -24,7 +23,9 @@ export async function post<T>(
     throw new Error(`HTTP ${res.status}`);
   }
 
-  return res.json() as Promise<T>;
+  const text = await res.text();
+
+  return (text ? JSON.parse(text) : null) as T;
 }
 
 export async function get<T>(url: string, headers?: HeadersInit): Promise<T> {
@@ -40,5 +41,7 @@ export async function get<T>(url: string, headers?: HeadersInit): Promise<T> {
     throw new Error(`HTTP ${res.status}`);
   }
 
-  return res.json() as Promise<T>;
+  const text = await res.text();
+
+  return (text ? JSON.parse(text) : null) as T;
 }
