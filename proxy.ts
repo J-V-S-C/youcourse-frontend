@@ -4,11 +4,15 @@ import { NextResponse, type NextRequest, type NextFetchEvent } from 'next/server
 const authMiddleware = withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
-    const isAuth = !!token;
-    const isAuthPage = 
-      req.nextUrl.pathname.startsWith('/forgot-password') || 
-      req.nextUrl.pathname.startsWith('/login') || 
-      req.nextUrl.pathname.startsWith('/register');
+    const isAuth = !!token && !token.error;
+    const { pathname } = req.nextUrl;
+
+    const isAuthPage =
+      pathname.startsWith('/forgot-password') ||
+      pathname.startsWith('/login') ||
+      pathname.startsWith('/register');
+
+    const isPublicRoute = pathname === '/';
 
     if (isAuthPage) {
       if (isAuth) {
@@ -17,8 +21,8 @@ const authMiddleware = withAuth(
       return NextResponse.next();
     }
 
-    if (!isAuth) {
-      let from = req.nextUrl.pathname;
+    if (!isAuth && !isPublicRoute) {
+      let from = pathname;
       if (req.nextUrl.search) {
         from += req.nextUrl.search;
       }
@@ -32,7 +36,7 @@ const authMiddleware = withAuth(
   },
   {
     callbacks: {
-      authorized: () => true, 
+      authorized: () => true,
     },
   }
 );
@@ -42,8 +46,7 @@ export default function proxy(req: NextRequest, event: NextFetchEvent) {
 }
 
 export const config = {
-  // Removi login e register do lookahead negativo para que o proxy os intercepte
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
