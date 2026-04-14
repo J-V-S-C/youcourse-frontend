@@ -33,9 +33,6 @@ export async function register(data: RegisterRequestDTO): Promise<void> {
   await post(`${API_BASE_URL}/accounts`, data);
 }
 
-export async function recoverPassword({email}: {email: string}): Promise<void> {
-    await post(`${API_BASE_URL}/accounts/password-reset`, {email});
-}
 
 export async function changePassword(data: ChangePasswordDTO): Promise<void> {
   await post(`${API_BASE_URL}/accounts/password`, data);

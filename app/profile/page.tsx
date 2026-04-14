@@ -15,7 +15,7 @@ export const metadata = {
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.accessToken) {
+  if (!session?.accessToken || session.error) {
     redirect('/login');
   }
 

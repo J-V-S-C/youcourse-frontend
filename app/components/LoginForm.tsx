@@ -15,7 +15,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
 export default function LoginForm() {
@@ -25,6 +25,7 @@ export default function LoginForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,8 +40,11 @@ export default function LoginForm() {
 
     if (result?.error) {
       setError('E-mail ou senha inválidos. Tente novamente.');
+      setLoading(false)
     } else {
-      router.push('/');
+      const callbackUrl = searchParams.get('from') || '/';
+      router.push(callbackUrl)
+      router.refresh()
     }
     setLoading(false);
   };
