@@ -14,11 +14,11 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
   const [units, setUnits] = useState<UnitDTO[]>([]);
   const [selectedUnitId, setSelectedUnitId] = useState<string>('');
   const [lessons, setLessons] = useState<LessonDTO[]>([]);
-  
+
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<LessonDTO | null>(null);
-  
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPreview, setIsPreview] = useState(false);
@@ -26,7 +26,7 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
   const loadUnits = useCallback(async () => {
     if (!session?.accessToken) return;
     try {
-      const data = await fetchUnits(courseId, session.accessToken);
+      const data = await fetchUnits(courseId);
       const sorted = data.sort((a, b) => a.position - b.position);
       setUnits(sorted);
       if (sorted.length > 0 && !selectedUnitId) {
@@ -41,7 +41,7 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
     if (!session?.accessToken || !uId) return;
     try {
       setLoading(true);
-      const data = await fetchLessons(uId, session.accessToken);
+      const data = await fetchLessons(uId);
       setLessons(data.sort((a, b) => a.position - b.position));
     } catch (err) {
       console.error(err);
@@ -79,9 +79,9 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
     if (!session?.accessToken || !selectedUnitId) return;
     try {
       if (editingLesson) {
-        await editLesson(editingLesson.id, { name, description, isPreview }, session.accessToken);
+        await editLesson(editingLesson.id, { name, description, isPreview });
       } else {
-        await createLesson(selectedUnitId, { name, description, position: lessons.length, isPreview }, session.accessToken);
+        await createLesson(selectedUnitId, { name, description, position: lessons.length, isPreview });
       }
       setDialogOpen(false);
       loadLessons(selectedUnitId);
@@ -95,7 +95,7 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
     if (!session?.accessToken) return;
     if (!confirm('Excluir esta aula?')) return;
     try {
-      await deleteLesson(lessonId, session.accessToken);
+      await deleteLesson(lessonId);
       loadLessons(selectedUnitId);
     } catch (err) {
       console.error(err);
@@ -112,9 +112,9 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
 
     const newPosition = direction === 'up' ? lessons[index - 1].position : lessons[index + 1].position;
     try {
-      await reorderLesson(lessonId, { position: newPosition }, session.accessToken);
+      await reorderLesson(lessonId, { position: newPosition });
       loadLessons(selectedUnitId);
-    } catch(err) {
+    } catch (err) {
       console.error(err);
     }
   };
@@ -123,7 +123,7 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
     <Card sx={{ p: 4, bgcolor: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' }}>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { sm: 'center' }, mb: 3, gap: 2 }}>
         <Typography variant="h6">Aulas</Typography>
-        
+
         <FormControl size="small" sx={{ minWidth: 200, bgcolor: 'var(--background)', borderRadius: 1 }}>
           <InputLabel id="unit-select-label" sx={{ color: 'var(--muted)' }}>Selecionar Módulo</InputLabel>
           <Select
@@ -139,9 +139,9 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
           </Select>
         </FormControl>
 
-        <Button 
-          variant="contained" 
-          size="small" 
+        <Button
+          variant="contained"
+          size="small"
           disabled={!selectedUnitId}
           onClick={() => handleOpenDialog()}
         >

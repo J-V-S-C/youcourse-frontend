@@ -24,6 +24,10 @@ export interface FetchCoursesResponseDTO {
   courses: CourseDTO[];
 }
 
+export interface GetCourseByIdDTO {
+  course: CourseDTO;
+}
+
 export interface CreateCourseDto {
   name: string;
   description: string;
