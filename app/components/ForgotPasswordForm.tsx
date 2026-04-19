@@ -16,7 +16,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { recoverPassword, changePassword } from '@/lib/user/user.service';
+import { changePassword, requestPasswordReset } from '@/lib/user/user.service';
 
 export default function ForgotPasswordForm() {
   const [step, setStep] = useState<'REQUEST_TOKEN' | 'RESET_PASSWORD'>(
@@ -31,29 +31,27 @@ export default function ForgotPasswordForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleRequestToken = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleRequestToken = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      await recoverPassword({email});
+      await requestPasswordReset(email);
       setStep('RESET_PASSWORD');
-     
-    } catch (err) {
-      setError('Ocorreu um erro ao processar a solicitação.');
+    } catch {
+      setError('Erro ao enviar token.');
     } finally {
       setLoading(false);
     }
   };
-
-  const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleChangePassword = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      await changePassword({token, newPassword});
+      await changePassword({ token, newPassword });
       setSuccess(true);
       setTimeout(() => {
         router.push('/login');

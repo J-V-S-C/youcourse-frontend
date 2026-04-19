@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import Navbar from '../Navbar';
+import Navbar from '@/app/components/Navbar';
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -23,7 +23,7 @@ vi.mock('next-auth/react', () => ({
 }));
 
 // ThemeSwitcher is an independent responsibility; stub it out
-vi.mock('../ThemeSwitcher', () => ({
+vi.mock('@/app/components/ThemeSwitcher', () => ({
   ThemeSwitcher: () => <button aria-label="Alternar tema" />,
 }));
 
@@ -60,8 +60,8 @@ describe('Navbar', () => {
     it('renders public navigation links', () => {
       render(<Navbar />);
       expect(screen.getAllByRole('link', { name: 'Catálogo' }).length).toBeGreaterThan(0);
-      expect(screen.getAllByRole('link', { name: 'Entrar' }).length).toBeGreaterThan(0);
-      expect(screen.getAllByRole('link', { name: 'Cadastrar' }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: 'Entrar' }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: 'Cadastrar' }).length).toBeGreaterThan(0);
     });
 
     it('does not render a sign-out button', () => {
@@ -71,7 +71,7 @@ describe('Navbar', () => {
 
     it('renders an "Entrar" CTA button that navigates to /login', () => {
       render(<Navbar />);
-      const loginBtn = screen.getByRole('button', { name: /entrar/i });
+      const loginBtn = screen.getAllByRole('button', { name: /entrar/i })[0];
       fireEvent.click(loginBtn);
       expect(mockPush).toHaveBeenCalledWith('/login');
     });
@@ -93,8 +93,8 @@ describe('Navbar', () => {
 
     it('does not render Entrar or Cadastrar links', () => {
       render(<Navbar />);
-      expect(screen.queryByRole('link', { name: 'Entrar' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('link', { name: 'Cadastrar' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Entrar' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Cadastrar' })).not.toBeInTheDocument();
     });
 
     it('calls signOut when the Sair button is clicked', () => {
@@ -114,7 +114,7 @@ describe('Navbar', () => {
       render(<Navbar />);
       // MUI Drawer renders a dialog element when open
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      const menuBtn = screen.getByRole('button', { name: /abrir menu/i });
+      const menuBtn = screen.getByRole('button', { name: /menu/i });
       fireEvent.click(menuBtn);
       expect(screen.getByRole('dialog')).toBeInTheDocument();
     });

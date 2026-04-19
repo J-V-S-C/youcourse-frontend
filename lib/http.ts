@@ -5,43 +5,83 @@ para consumir os dados do usuário.
 /api: Destinado à criação de endpoints de backend dentro do próprio Next.js (Route Handlers). 
 Serve para receber requisições, não para armazenar as funções que fazem as requisições à sua API (NestJS).
 */
-export async function post<T>(
+
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { refreshAccessToken } from '@/lib/auth/auth.service';
+
+async function request<T>(
   url: string,
-  body?: unknown,
-  headers?: HeadersInit,
+  options: RequestInit = {}
 ): Promise<T> {
-  const res = await fetch(url, {
-    method: 'POST',
+  const session = await getServerSession(authOptions);
+
+  let accessToken = session?.accessToken;
+
+  if (!accessToken) {
+    throw new Error('No token');
+  }
+
+  let res = await fetch(url, {
+    ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...headers,
+      Authorization: `Bearer ${accessToken}`,
+      ...(options.headers || {}),
     },
-    body: body ? JSON.stringify(body) : undefined,
   });
+
+  if (res.status === 401) {
+    const refreshed = await refreshAccessToken(session as any);
+
+    if (refreshed.error) {
+      throw new Error('Refresh failed');
+    }
+
+    accessToken = refreshed.accessToken;
+
+    res = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        ...(options.headers || {}),
+      },
+    });
+  }
 
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);
   }
 
-  const text = await res.text();
-
-  return (text ? JSON.parse(text) : null) as T;
+  return res.json();
 }
 
-export async function get<T>(url: string, headers?: HeadersInit): Promise<T> {
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
+export function get<T>(url: string) {
+  return request<T>(url, { method: 'GET' });
+}
+
+export function post<T>(url: string, body?: unknown) {
+  return request<T>(url, {
+    method: 'POST',
+    body: JSON.stringify(body),
   });
+}
 
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`);
-  }
+export function patch<T>(url: string, body?: unknown) {
+  return request<T>(url, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
 
-  const text = await res.text();
+export function put<T>(url: string, body?: unknown) {
+  return request<T>(url, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
+}
 
-  return (text ? JSON.parse(text) : null) as T;
+export function del<T>(url: string) {
+  return request<T>(url, { method: 'DELETE' });
 }

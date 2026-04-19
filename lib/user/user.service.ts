@@ -6,6 +6,7 @@ import type {
   ChangePasswordDTO,
   UserProfileDTO,
 } from './types';
+import { publicPost } from '../http-public';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
@@ -18,9 +19,7 @@ export async function getUserProfile(
 
     const response = await get<GetUserProfileResponse>(
       `${API_BASE_URL}/accounts/${userId}`,
-      {
-        Authorization: `Bearer ${accessToken}`,
-      },
+     
     );
 
     return response.account;
@@ -30,10 +29,13 @@ export async function getUserProfile(
 }
 
 export async function register(data: RegisterRequestDTO): Promise<void> {
-  await post(`${API_BASE_URL}/accounts`, data);
+  await publicPost(`${API_BASE_URL}/accounts`, data);
 }
 
+export async function requestPasswordReset(email: string): Promise<void> {
+ await publicPost(`${API_BASE_URL}/accounts/password-reset`, { email });
+}
 
 export async function changePassword(data: ChangePasswordDTO): Promise<void> {
-  await post(`${API_BASE_URL}/accounts/password`, data);
+  await publicPost(`${API_BASE_URL}/accounts/password`, data);
 }

@@ -26,6 +26,7 @@ import { ThemeSwitcher } from './ThemeSwitcher';
 const NAV_LINKS_PUBLIC = [{ label: 'Catálogo', href: '/' }];
 const NAV_LINKS_AUTH = [
   { label: 'Catálogo', href: '/' },
+  { label: 'Gerenciar Cursos', href: '/manage/courses' },
   { label: 'Perfil', href: '/profile' },
 ];
 
