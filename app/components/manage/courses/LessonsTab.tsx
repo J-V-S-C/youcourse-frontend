@@ -1,13 +1,35 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Box, Card, Typography, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Select, MenuItem, FormControl, InputLabel, Switch, FormControlLabel } from '@mui/material';
-import { KeyboardArrowUp, KeyboardArrowDown, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import {
+  Box, Card, Typography, Button, TextField, Dialog, DialogTitle,
+  DialogContent, DialogActions, List, ListItem, ListItemText,
+  ListItemSecondaryAction, IconButton, Select, MenuItem,
+  FormControl, InputLabel, Switch, FormControlLabel, Alert
+} from '@mui/material';
+import {
+  KeyboardArrowUp,
+  KeyboardArrowDown,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  CloudUpload,
+  VideoFile,
+  DeleteSweep
+} from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
 import type { UnitDTO } from '@/lib/units/types';
 import type { LessonDTO } from '@/lib/lessons/types';
 import { fetchUnits } from '@/lib/units/unit.service';
-import { fetchLessons, createLesson, editLesson, deleteLesson, reorderLesson } from '@/lib/lessons/lesson.service';
+import {
+  fetchLessons,
+  createLesson,
+  editLesson,
+  deleteLesson,
+  reorderLesson,
+  attachVideoToLesson,
+  removeVideoFromLesson,
+  uploadFileToS3,
+} from '@/lib/lessons/lesson.service';
 
 export default function LessonsTab({ courseId }: { courseId: string }) {
   const { data: session } = useSession();
@@ -22,9 +44,11 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPreview, setIsPreview] = useState(false);
+  const [videoFile, setVideoFile] = useState<{ filename: string; contentType: string } | null>(null);
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const loadUnits = useCallback(async () => {
-    if (!session?.accessToken) return;
     try {
       const data = await fetchUnits(courseId);
       const sorted = data.sort((a, b) => a.position - b.position);
@@ -35,10 +59,10 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
     } catch (err) {
       console.error(err);
     }
-  }, [courseId, session?.accessToken, selectedUnitId]);
+  }, [courseId, selectedUnitId]);
 
   const loadLessons = useCallback(async (uId: string) => {
-    if (!session?.accessToken || !uId) return;
+    if (!uId) return;
     try {
       setLoading(true);
       const data = await fetchLessons(uId);
@@ -48,7 +72,7 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
     } finally {
       setLoading(false);
     }
-  }, [session?.accessToken]);
+  }, []);
 
   useEffect(() => {
     loadUnits();
@@ -61,6 +85,7 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
   }, [selectedUnitId, loadLessons]);
 
   const handleOpenDialog = (lesson?: LessonDTO) => {
+    setVideoFile(null);
     if (lesson) {
       setEditingLesson(lesson);
       setName(lesson.name);
@@ -75,24 +100,57 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
     setDialogOpen(true);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file)
+      setVideoFile({
+        filename: file.name,
+        contentType: file.type
+      });
+    }
+  };
+
   const handleSave = async () => {
-    if (!session?.accessToken || !selectedUnitId) return;
+    if (!selectedUnitId) return;
     try {
+      setLoading(true);
+      let lessonId: string;
+
       if (editingLesson) {
         await editLesson(editingLesson.id, { name, description, isPreview });
+        lessonId = editingLesson.id;
       } else {
-        await createLesson(selectedUnitId, { name, description, position: lessons.length, isPreview });
+        const response = await createLesson(selectedUnitId, {
+          name,
+          description,
+          position: lessons.length,
+          isPreview
+        });
+        lessonId = response.id;
       }
+
+      if (selectedFile && lessonId) {
+        const { video } = await attachVideoToLesson(lessonId, {
+          filename: selectedFile.name,
+          contentType: selectedFile.type
+        });
+
+        await uploadFileToS3(video.uploadUrl, selectedFile)
+
+      }
+
       setDialogOpen(false);
       loadLessons(selectedUnitId);
     } catch (err) {
       console.error(err);
       alert('Erro ao salvar aula');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (lessonId: string) => {
-    if (!session?.accessToken) return;
     if (!confirm('Excluir esta aula?')) return;
     try {
       await deleteLesson(lessonId);
@@ -103,8 +161,18 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
     }
   };
 
+  const handleRemoveVideo = async (lessonId: string) => {
+    if (!confirm('Remover o vídeo desta aula?')) return;
+    try {
+      await removeVideoFromLesson(lessonId);
+      loadLessons(selectedUnitId);
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao remover vídeo');
+    }
+  };
+
   const handleReorder = async (lessonId: string, direction: 'up' | 'down') => {
-    if (!session?.accessToken) return;
     const index = lessons.findIndex(l => l.id === lessonId);
     if (index === -1) return;
     if (direction === 'up' && index === 0) return;
@@ -159,26 +227,32 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
             <ListItem key={lesson.id} divider>
               <ListItemText
                 primary={
-                  <Typography component="span">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     {lesson.name}
-                    {lesson.isPreview && <Typography component="span" variant="caption" sx={{ ml: 1, color: 'primary.main' }}>(Preview)</Typography>}
-                  </Typography>
+                    {lesson.isPreview && <Typography component="span" variant="caption" sx={{ color: 'primary.main' }}>(Preview)</Typography>}
+                    {lesson.video && <VideoFile fontSize="inherit" color="action" />}
+                  </Box>
                 }
                 secondary={lesson.description}
                 sx={{ '& .MuiListItemText-secondary': { color: 'var(--muted)' } }}
               />
-              <ListItemSecondaryAction sx={{ display: 'flex', gap: 1 }}>
+              <ListItemSecondaryAction sx={{ display: 'flex', gap: 0.5 }}>
                 <IconButton size="small" onClick={() => handleReorder(lesson.id, 'up')} disabled={index === 0}>
                   <KeyboardArrowUp />
                 </IconButton>
                 <IconButton size="small" onClick={() => handleReorder(lesson.id, 'down')} disabled={index === lessons.length - 1}>
                   <KeyboardArrowDown />
                 </IconButton>
-                <IconButton size="small" aria-label="edit" onClick={() => handleOpenDialog(lesson)}>
-                  <EditIcon />
+                <IconButton size="small" onClick={() => handleOpenDialog(lesson)}>
+                  <EditIcon fontSize="small" />
                 </IconButton>
-                <IconButton size="small" edge="end" aria-label="delete" color="error" onClick={() => handleDelete(lesson.id)}>
-                  <DeleteIcon />
+                {lesson.video && (
+                  <IconButton size="small" color="warning" onClick={() => handleRemoveVideo(lesson.id)}>
+                    <DeleteSweep fontSize="small" />
+                  </IconButton>
+                )}
+                <IconButton size="small" edge="end" color="error" onClick={() => handleDelete(lesson.id)}>
+                  <DeleteIcon fontSize="small" />
                 </IconButton>
               </ListItemSecondaryAction>
             </ListItem>
@@ -191,17 +265,15 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>{editingLesson ? 'Editar Aula' : 'Nova Aula'}</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
           <TextField
             autoFocus
-            margin="dense"
             label="Nome"
             fullWidth
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <TextField
-            margin="dense"
             label="Descrição"
             fullWidth
             multiline
@@ -209,15 +281,41 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+
+          <Box sx={{ p: 2, border: '1px dashed var(--border)', borderRadius: 1 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1.5 }}>Vídeo da Aula</Typography>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<CloudUpload />}
+              fullWidth
+              sx={{ textTransform: 'none' }}
+            >
+              {videoFile ? videoFile.filename : 'Selecionar Vídeo'}
+              <input type="file" hidden accept="video/*" onChange={handleFileChange} />
+            </Button>
+            {videoFile && (
+              <Alert severity="success" sx={{ mt: 1.5, py: 0 }}>
+                Arquivo selecionado. Clique em salvar para anexar.
+              </Alert>
+            )}
+            {editingLesson?.video && !videoFile && (
+              <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+                Esta aula já possui um vídeo. Selecionar um novo substituirá o atual.
+              </Typography>
+            )}
+          </Box>
+
           <FormControlLabel
             control={<Switch checked={isPreview} onChange={(e) => setIsPreview(e.target.checked)} />}
             label="Disponível para Preview Público?"
-            sx={{ mt: 2 }}
           />
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: 3 }}>
           <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-          <Button onClick={handleSave} variant="contained">Salvar</Button>
+          <Button onClick={handleSave} variant="contained" disabled={loading}>
+            {loading ? 'Salvando...' : 'Salvar'}
+          </Button>
         </DialogActions>
       </Dialog>
     </Card>
