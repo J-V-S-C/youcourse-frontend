@@ -48,3 +48,12 @@ export interface ReorderLessonDto {
 export interface FetchLessonsResponseDTO {
   lessons: LessonDTO[];
 }
+
+export interface AttachVideoResponse {
+  lessonId: string;
+  video: {
+    externalId: string;
+    uploadUrl: string;    // PUT here
+    playbackUrl: string;  // CloudFront stable URL
+  };
+}
