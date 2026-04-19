@@ -20,7 +20,6 @@ export default async function HomePage() {
 
       <HeroSection />
 
-      {/* Catalog Section */}
       <Box
         id="catalogo"
         component="section"
