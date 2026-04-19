@@ -14,7 +14,7 @@ export default function UnitsTab({ courseId }: { courseId: string }) {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUnit, setEditingUnit] = useState<UnitDTO | null>(null);
-  
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -22,7 +22,7 @@ export default function UnitsTab({ courseId }: { courseId: string }) {
     if (!session?.accessToken) return;
     try {
       setLoading(true);
-      const data = await fetchUnits(courseId, session.accessToken);
+      const data = await fetchUnits(courseId);
       // Ensure they are sorted by position
       setUnits(data.sort((a, b) => a.position - b.position));
     } catch (err) {
@@ -53,9 +53,9 @@ export default function UnitsTab({ courseId }: { courseId: string }) {
     if (!session?.accessToken) return;
     try {
       if (editingUnit) {
-        await editUnit(editingUnit.id, { name, description }, session.accessToken);
+        await editUnit(editingUnit.id, { name, description });
       } else {
-        await createUnit(courseId, { name, description, position: units.length }, session.accessToken);
+        await createUnit(courseId, { name, description, position: units.length });
       }
       setDialogOpen(false);
       loadUnits();
@@ -86,9 +86,9 @@ export default function UnitsTab({ courseId }: { courseId: string }) {
 
     const newPosition = direction === 'up' ? units[index - 1].position : units[index + 1].position;
     try {
-      await reorderUnit(unitId, { position: newPosition }, session.accessToken);
+      await reorderUnit(unitId, { position: newPosition });
       loadUnits();
-    } catch(err) {
+    } catch (err) {
       console.error(err);
     }
   };

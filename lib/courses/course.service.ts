@@ -1,31 +1,62 @@
 import { get, post, patch, del, put } from '../http';
-import {publicGet } from '../http-public'
-import type { 
-  CourseDTO, 
-  FetchCoursesResponseDTO, 
-  CreateCourseDto, 
+import { publicGet } from '../http-public'
+import type {
+  CourseDTO,
+  FetchCoursesResponseDTO,
+  CreateCourseDto,
   EditCourseDetailsDto,
   PublishCourseDto,
   UpdateCoursePriceDto,
   RateCourseDto,
-  EditRatingDto
+  EditRatingDto,
+  GetCourseByIdDTO
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
 export async function fetchCourses(): Promise<CourseDTO[]> {
   try {
-    const params = new URLSearchParams({page: '1', limit: '20'})
+    const params = new URLSearchParams({ page: '1', limit: '20' })
     const response = await publicGet<FetchCoursesResponseDTO>(
       `${API_BASE_URL}/courses?${params}`,
     );
     return response.courses ?? [];
-  } catch (error){
+  } catch (error) {
     console.error("ERRO:", error)
     return [];
   }
 }
 
+export async function fetchCreatorCourses(): Promise<CourseDTO[]> {
+  try {
+    const params = new URLSearchParams({ page: '1', limit: '20' })
+    const response = await get<FetchCoursesResponseDTO>(
+      `${API_BASE_URL}/courses/managed?${params}`
+    );
+    return response.courses ?? [];
+  } catch (error) {
+    console.error("Erro ao buscar cursos gerenciados:", error);
+    return [];
+  }
+}
+
+export async function getPublicCourseById(courseId: string): Promise<CourseDTO | null> {
+  try {
+    const response = await publicGet<GetCourseByIdDTO>(`${API_BASE_URL}/courses/${courseId}`)
+    return response.course
+  } catch {
+    return null
+  }
+}
+
+export async function getManagedCourseById(courseId: string): Promise<CourseDTO | null> {
+  try {
+    const response = await get<GetCourseByIdDTO>(`${API_BASE_URL}/courses/managed/${courseId}`)
+    return response.course
+  } catch {
+    return null
+  }
+}
 
 export async function createCourse(data: CreateCourseDto): Promise<void> {
   await post(`${API_BASE_URL}/courses`, data);
@@ -56,7 +87,13 @@ export async function unpublishCourse(courseId: string): Promise<void> {
 }
 
 export async function updateCoursePrice(courseId: string, data: UpdateCoursePriceDto): Promise<void> {
-  await patch(`${API_BASE_URL}/courses/${courseId}/price`, data);
+  const payload = {
+    price: {
+      amount: Number(data.price.amount),
+      currency: data.price.currency
+    }
+  }
+  await patch(`${API_BASE_URL}/courses/${courseId}/price`, payload);
 }
 
 export async function editRating(ratingId: string, data: EditRatingDto): Promise<void> {

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import Navbar from '@/app/components/Navbar';
 import Footer from '@/app/components/Footer';
 import { Box, Container, Typography, Button, Card, CardContent, CardActions, Chip, Grid } from '@mui/material';
-import { fetchCourses } from '@/lib/courses/course.service';
+import { fetchCourses, fetchCreatorCourses } from '@/lib/courses/course.service';
 import Link from 'next/link';
 
 export const metadata = {
@@ -18,9 +18,7 @@ export default async function ManageCoursesPage() {
     redirect('/login');
   }
 
-  const courses = await fetchCourses();
-
-  const userCourses = courses.filter((course) => course.creatorId === session.user.id)
+  const courses = await fetchCreatorCourses();
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'var(--background)' }}>
@@ -38,7 +36,7 @@ export default async function ManageCoursesPage() {
           </Box>
 
           <Grid container spacing={3}>
-            {userCourses.map(course => (
+            {courses.map(course => (
               <Grid size={{ xs: 12, md: 4 }} key={course.id}>
                 <Card sx={{ bgcolor: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' }}>
                   <CardContent>
@@ -59,7 +57,7 @@ export default async function ManageCoursesPage() {
               </Grid>
             ))}
           </Grid>
-          {userCourses.length === 0 && (
+          {courses.length === 0 && (
             <Typography variant="body1" sx={{ color: 'var(--muted)' }}>Nenhum curso encontrado.</Typography>
           )}
         </Container>

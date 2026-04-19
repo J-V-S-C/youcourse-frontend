@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import Navbar from '@/app/components/Navbar';
 import Footer from '@/app/components/Footer';
 import { Box, Typography } from '@mui/material';
-import { fetchCourses } from '@/lib/courses/course.service';
+import { getManagedCourseById } from '@/lib/courses/course.service';
 import CourseManagerClient from '@/app/components/manage/courses/CourseManagerClient';
 import { assertCourseOwnership } from '@/lib/auth/assert-owner';
 
@@ -16,8 +16,7 @@ export default async function ManageCoursePage({ params }: { params: Promise<{ c
   }
 
   const { courseId } = await params;
-  const courses = await fetchCourses();
-  const course = courses.find(c => c.id === courseId) || null;
+  const course = await getManagedCourseById(courseId);
 
   if (!course) {
     return (

@@ -9,30 +9,45 @@ Serve para receber requisições, não para armazenar as funções que fazem as 
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { refreshAccessToken } from '@/lib/auth/auth.service';
+import { getSession } from 'next-auth/react';
+
+async function getAccessToken() {
+  if (typeof window === "undefined") {
+    const session = await getServerSession(authOptions);
+    return session?.accessToken;
+  } else {
+    const session = await getSession();
+    return session?.accessToken;
+  }
+}
 
 async function request<T>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const session = await getServerSession(authOptions);
-
-  let accessToken = session?.accessToken;
+  let accessToken = await getAccessToken()
 
   if (!accessToken) {
     throw new Error('No token');
   }
 
+  const createHeaders = (token: string) => ({
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    ...(options.headers || {}),
+  })
+
   let res = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-      ...(options.headers || {}),
-    },
+    headers: createHeaders(accessToken)
   });
 
   if (res.status === 401) {
-    const refreshed = await refreshAccessToken(session as any);
+    const currentSession = typeof window === 'undefined'
+      ? await getServerSession(authOptions)
+      : await getSession();
+
+    const refreshed = await refreshAccessToken(currentSession as any);
 
     if (refreshed.error) {
       throw new Error('Refresh failed');
@@ -54,7 +69,17 @@ async function request<T>(
     throw new Error(`HTTP ${res.status}`);
   }
 
-  return res.json();
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
+  const text = await res.text();
+
+  if (!text) {
+    return undefined as T;
+  }
+
+  return JSON.parse(text);
 }
 
 export function get<T>(url: string) {
