@@ -23,7 +23,6 @@ export default function UnitsTab({ courseId }: { courseId: string }) {
     try {
       setLoading(true);
       const data = await fetchUnits(courseId);
-      // Ensure they are sorted by position
       setUnits(data.sort((a, b) => a.position - b.position));
     } catch (err) {
       console.error(err);
@@ -76,28 +75,49 @@ export default function UnitsTab({ courseId }: { courseId: string }) {
       alert('Erro ao excluir módulo');
     }
   };
-
   const handleReorder = async (unitId: string, direction: 'up' | 'down') => {
     if (!session?.accessToken) return;
+
     const index = units.findIndex(u => u.id === unitId);
     if (index === -1) return;
     if (direction === 'up' && index === 0) return;
     if (direction === 'down' && index === units.length - 1) return;
 
-    const newPosition = direction === 'up' ? units[index - 1].position : units[index + 1].position;
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+    const currentUnitId = units[index].id;
+    const targetUnitId = units[targetIndex].id;
+    const currentNewPosition = units[targetIndex].position;
+    const targetNewPosition = units[index].position;
+
+    setUnits(prevUnits => {
+      const newUnits = [...prevUnits];
+
+      const currentUnit = { ...newUnits[index], position: currentNewPosition };
+      const targetUnit = { ...newUnits[targetIndex], position: targetNewPosition };
+
+      newUnits[index] = targetUnit;
+      newUnits[targetIndex] = currentUnit;
+
+      return newUnits;
+    });
+
     try {
-      await reorderUnit(unitId, { position: newPosition });
-      loadUnits();
+
+      await Promise.all([
+        reorderUnit(currentUnitId, { position: currentNewPosition }),
+        reorderUnit(targetUnitId, { position: targetNewPosition })
+      ]);
     } catch (err) {
-      console.error(err);
+      console.error('Falha ao reordenar. Revertendo estado.', err);
+      loadUnits();
     }
   };
-
   return (
     <Card sx={{ p: 4, bgcolor: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h6">Módulos do Curso</Typography>
-        <Button variant="contained" size="small" onClick={() => handleOpenDialog()}>Adicionar Módulo</Button>
+        <Button sx={{ bgcolor: 'var(--primary)' }} variant="contained" size="small" onClick={() => handleOpenDialog()}>Adicionar Módulo</Button>
       </Box>
 
       {loading ? (

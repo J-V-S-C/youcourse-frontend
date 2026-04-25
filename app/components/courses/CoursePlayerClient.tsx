@@ -1,23 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Typography, Select, MenuItem, FormControl, InputLabel, Divider, IconButton } from '@mui/material';
-import { PlayCircleOutlined as PlayCircleOutline, Lock, Description, ArrowBack } from '@mui/icons-material';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  Box, Drawer, List, ListItem, ListItemIcon, ListItemText,
+  Typography, Select, MenuItem, FormControl, InputLabel, Divider, IconButton
+} from '@mui/material';
+import { PlayCircleOutlined, Lock, Description, ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import type { UnitDTO } from '@/lib/units/types';
+import type { LessonDTO } from '@/lib/lessons/types';
 
 const DRAWER_WIDTH = 320;
 const NAVBAR_HEIGHT = 64;
 
-export default function CoursePlayerClient({ courseId, unitsWithLessons, currentLesson, initialUnitId }: any) {
+export interface UnitWithLessons extends UnitDTO {
+  lessons: LessonDTO[];
+}
+
+interface CoursePlayerClientProps {
+  courseId: string;
+  unitsWithLessons: UnitWithLessons[];
+  currentLesson: LessonDTO;
+  initialUnitId: string | null;
+}
+
+export default function CoursePlayerClient({
+  courseId,
+  unitsWithLessons,
+  currentLesson,
+  initialUnitId
+}: CoursePlayerClientProps) {
   const router = useRouter();
-  const [selectedUnitId, setSelectedUnitId] = useState(initialUnitId);
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(initialUnitId);
 
   useEffect(() => {
     setSelectedUnitId(initialUnitId);
   }, [initialUnitId]);
 
-  const selectedUnit = unitsWithLessons.find((u: any) => u.id === selectedUnitId);
+  const selectedUnit = useMemo(() => {
+    return unitsWithLessons.find((u) => u.id === selectedUnitId);
+  }, [unitsWithLessons, selectedUnitId]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
@@ -32,11 +55,16 @@ export default function CoursePlayerClient({ courseId, unitsWithLessons, current
         justifyContent: 'space-between'
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton onClick={() => router.push(`/courses/${courseId}`)} size="small">
+          <IconButton onClick={() => router.push(`/courses/${courseId}`)} size="small" aria-label="Voltar para o curso">
             <ArrowBack />
           </IconButton>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-            <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>YouCourse</Link>
+          <Typography
+            variant="subtitle1"
+            component={Link}
+            href="/"
+            sx={{ fontWeight: 'bold', textDecoration: 'none', color: 'inherit' }}
+          >
+            YouCourse
           </Typography>
         </Box>
         <Typography variant="body2" sx={{ color: 'var(--muted)', display: { xs: 'none', sm: 'block' } }}>
@@ -64,11 +92,11 @@ export default function CoursePlayerClient({ courseId, unitsWithLessons, current
               <InputLabel id="unit-select-label">Módulo</InputLabel>
               <Select
                 labelId="unit-select-label"
-                value={selectedUnitId}
+                value={selectedUnitId ?? ''}
                 label="Módulo"
                 onChange={(e) => setSelectedUnitId(e.target.value)}
               >
-                {unitsWithLessons.map((unit: any) => (
+                {unitsWithLessons.map((unit) => (
                   <MenuItem key={unit.id} value={unit.id}>
                     {unit.name}
                   </MenuItem>
@@ -78,9 +106,8 @@ export default function CoursePlayerClient({ courseId, unitsWithLessons, current
           </Box>
           <Divider />
           <List sx={{ overflowY: 'auto' }}>
-            {selectedUnit?.lessons.map((lesson: any) => {
+            {selectedUnit?.lessons.map((lesson) => {
               const isCurrent = lesson.id === currentLesson.id;
-              // Bloqueia se não for preview E não tiver vídeo (ou se você quiser checar assinatura aqui)
               const hasAccess = lesson.isPreview || !!lesson.video;
 
               return (
@@ -96,11 +123,12 @@ export default function CoursePlayerClient({ courseId, unitsWithLessons, current
                     bgcolor: isCurrent ? 'rgba(63, 81, 181, 0.08)' : 'transparent',
                     borderLeft: isCurrent ? '4px solid #3f51b5' : '4px solid transparent',
                     opacity: hasAccess ? 1 : 0.5,
+                    transition: 'background-color 0.2s',
                     '&:hover': hasAccess ? { bgcolor: 'rgba(0, 0, 0, 0.04)' } : {},
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 36, color: isCurrent ? 'primary.main' : 'inherit' }}>
-                    {hasAccess ? (lesson.video ? <PlayCircleOutline /> : <Description />) : <Lock fontSize="small" />}
+                    {hasAccess ? (lesson.video ? <PlayCircleOutlined /> : <Description />) : <Lock fontSize="small" />}
                   </ListItemIcon>
                   <ListItemText
                     primary={lesson.name}
@@ -124,7 +152,9 @@ export default function CoursePlayerClient({ courseId, unitsWithLessons, current
               <video
                 key={currentLesson.video.playbackUrl}
                 controls
+                controlsList="nodownload"
                 autoPlay
+                preload="auto"
                 crossOrigin="anonymous"
                 style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               >

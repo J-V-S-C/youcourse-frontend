@@ -212,6 +212,7 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
           size="small"
           disabled={!selectedUnitId}
           onClick={() => handleOpenDialog()}
+          sx={{ backgroundColor: "var(--primary)" }}
         >
           Adicionar Aula
         </Button>
@@ -282,30 +283,30 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
             onChange={(e) => setDescription(e.target.value)}
           />
 
-          <Box sx={{ p: 2, border: '1px dashed var(--border)', borderRadius: 1 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1.5 }}>Vídeo da Aula</Typography>
-            <Button
-              variant="outlined"
-              component="label"
-              startIcon={<CloudUpload />}
-              fullWidth
-              sx={{ textTransform: 'none' }}
-            >
-              {videoFile ? videoFile.filename : 'Selecionar Vídeo'}
-              <input type="file" hidden accept="video/*" onChange={handleFileChange} />
-            </Button>
-            {videoFile && (
-              <Alert severity="success" sx={{ mt: 1.5, py: 0 }}>
-                Arquivo selecionado. Clique em salvar para anexar.
-              </Alert>
-            )}
-            {editingLesson?.video && !videoFile && (
-              <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
-                Esta aula já possui um vídeo. Selecionar um novo substituirá o atual.
-              </Typography>
-            )}
-          </Box>
-
+          {editingLesson ? (
+            <Box sx={{ p: 2, border: '1px dashed var(--border)', borderRadius: 1 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1.5 }}>Vídeo da Aula</Typography>
+              <Button
+                variant="outlined"
+                component="label"
+                startIcon={<CloudUpload />}
+                fullWidth
+                sx={{ textTransform: 'none' }}
+              >
+                {videoFile ? videoFile.filename : 'Selecionar Vídeo'}
+                <input type="file" hidden accept="video/*" onChange={handleFileChange} />
+              </Button>
+              {videoFile && (
+                <Alert severity="success" sx={{ mt: 1.5, py: 0 }}>
+                  Arquivo selecionado. Clique em salvar para anexar.
+                </Alert>
+              )}
+            </Box>
+          ) : (
+            <Alert severity="info" sx={{ mt: 1 }}>
+              Salve a aula primeiro para habilitar o upload de vídeo.
+            </Alert>
+          )}
           <FormControlLabel
             control={<Switch checked={isPreview} onChange={(e) => setIsPreview(e.target.checked)} />}
             label="Disponível para Preview Público?"

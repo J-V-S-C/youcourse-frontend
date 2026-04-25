@@ -12,7 +12,7 @@ import { createCourse } from '@/lib/courses/course.service';
 export default function NewCoursePage() {
   const { data: session } = useSession();
   const router = useRouter();
-  
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState<number>(0);
@@ -32,7 +32,7 @@ export default function NewCoursePage() {
         sellable,
         visible,
         price: sellable ? { amount, currency } : undefined,
-      }, session.accessToken);
+      });
       router.push('/manage/courses');
     } catch (err) {
       console.error(err);
@@ -50,7 +50,7 @@ export default function NewCoursePage() {
         <Box sx={{ flexGrow: 1, py: 6 }}>
           <Container maxWidth="md">
             <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 4 }}>Criar Novo Curso</Typography>
-            
+
             <Card sx={{ p: 4, bgcolor: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' }}>
               <form onSubmit={handleSubmit}>
                 <TextField
@@ -71,7 +71,7 @@ export default function NewCoursePage() {
                   rows={4}
                   required
                 />
-                
+
                 <FormControlLabel
                   control={<Switch checked={visible} onChange={(e) => setVisible(e.target.checked)} />}
                   label="Tornar curso visível no catálogo?"
@@ -87,7 +87,7 @@ export default function NewCoursePage() {
                 {sellable && (
                   <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
                     <TextField
-                      label="Preço (Centavos)"
+                      label="Preço (Reais)"
                       type="number"
                       value={amount}
                       onChange={(e) => setAmount(Number(e.target.value))}
