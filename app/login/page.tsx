@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import LoginForm from '../components/LoginForm';
 import AuthPageLayout from '../components/auth/AuthPageLayout';
+import LoginSkeleton from './loading-skeleton';
 
 export const metadata = {
   title: 'Entrar — YouCourse',
@@ -9,7 +11,9 @@ export const metadata = {
 export default function LoginPage() {
   return (
     <AuthPageLayout maxWidth={440}>
-      <LoginForm />
+      <Suspense fallback={<LoginSkeleton />}>
+        <LoginForm />
+      </Suspense>
     </AuthPageLayout>
   );
 }
