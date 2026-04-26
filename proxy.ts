@@ -16,7 +16,6 @@ const authMiddleware = withAuth(
 
     if (isAuthPage) {
       if (isAuth) {
-        console.log(isAuth)
         return NextResponse.redirect(new URL('/', req.url));
       }
       return NextResponse.next();

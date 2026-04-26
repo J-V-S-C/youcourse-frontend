@@ -49,7 +49,7 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ c
             {course.description}
           </Typography>
           <Button variant="contained" size="large" sx={{ py: 1.5, px: 4, fontSize: '1.1rem' }}>
-            {course.sellable && course.price ? `Comprar por ${course.price.currency} ${(course.price.amount / 100).toFixed(2)}` : 'Comece a aprender agora (Grátis)'}
+            {course.sellable && course.price ? `Comprar por ${course.price.currency} ${(course.price.amount).toFixed(2)}` : 'Comece a aprender agora (Grátis)'}
           </Button>
         </Container>
       </Box>

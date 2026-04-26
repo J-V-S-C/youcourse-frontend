@@ -132,7 +132,7 @@ export default function CourseDetailsTab({ course }: { course: CourseDTO }) {
         )}
 
         <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-          <Button variant="contained" onClick={handleUpdateDetails} disabled={loading} sx={{ px: 4 }}>
+          <Button variant="contained" onClick={handleUpdateDetails} disabled={loading} sx={{ px: 4, backgroundColor: 'var(--primary)' }}>
             {loading ? 'Salvando...' : 'Salvar Alterações'}
           </Button>
         </Box>
