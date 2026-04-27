@@ -5,6 +5,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import SessionProvider from "./providers/SessionProvider";
 import { ThemeProvider } from "next-themes";
 import MuiProvider from "./providers/MuiProvider";
+import ThemeProviderClient from "./providers/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,16 +36,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <AppRouterCacheProvider>
           <SessionProvider>
-            <ThemeProvider
-              enableSystem={true}
-              attribute="data-theme"
-              defaultTheme="dark"
-              scriptProps={{ 'data-cfasync': 'false' }}
-            >
+            <ThemeProviderClient>
               <MuiProvider>
                 {children}
               </MuiProvider>
-            </ThemeProvider>
+            </ThemeProviderClient>
           </SessionProvider>
         </AppRouterCacheProvider>
       </body>

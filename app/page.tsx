@@ -11,6 +11,8 @@ export const metadata = {
     'Portal de cursos online. Explore, aprenda e cresça com cursos desenvolvidos pela comunidade.',
 };
 
+export const dynamic = 'force-dynamic'
+
 export default async function HomePage() {
   const courses = await fetchCourses();
 
@@ -20,7 +22,6 @@ export default async function HomePage() {
 
       <HeroSection />
 
-      {/* Catalog Section */}
       <Box
         id="catalogo"
         component="section"

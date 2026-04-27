@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardActionArea, CardContent, Box, Typography } from '@mui/material';
+import Link from 'next/link';
 import type { CourseDTO } from '@/lib/courses/types';
 import { courseGradient, formatPrice } from './courseUtils';
 import CourseCardThumbnail from './CourseCardThumbnail';
@@ -34,6 +35,8 @@ export default function CourseCard({ course }: CourseCardProps) {
       }}
     >
       <CardActionArea
+        component={Link}
+        href={`/courses/${course.id}`}
         sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
       >
         <CourseCardThumbnail

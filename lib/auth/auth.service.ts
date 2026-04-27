@@ -1,4 +1,5 @@
 import { post } from '../http';
+import { publicPost } from '../http-public';
 import { decodeToken } from './jwt';
 import type {
   AuthToken,
@@ -14,7 +15,7 @@ export async function login(
   password: string,
 ): Promise<AuthUser | null> {
   try {
-    const { access_token, refresh_token } = await post<LoginResponseDTO>(
+    const { access_token, refresh_token } = await publicPost<LoginResponseDTO>(
       `${API_BASE_URL}/sessions`,
       { email, password },
     );
@@ -34,7 +35,7 @@ export async function login(
 
 export async function refreshAccessToken(token: AuthToken): Promise<AuthToken> {
   try {
-    const { access_token, refresh_token } = await post<RefreshResponseDTO>(
+    const { access_token, refresh_token } = await publicPost<RefreshResponseDTO>(
       `${API_BASE_URL}/sessions/refresh`,
       { refreshToken: token.refreshToken },
     );

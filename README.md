@@ -1,222 +1,112 @@
-# YouCourse Frontend
+<h1 align="center"> YouCourse Frontend </h1>
 
-> Portal de cursos online — interface web construída com **Next.js 16**, **MUI v9**, **Tailwind CSS v4** e autenticação via **NextAuth.js**.
+<p align="center">
+  <img src="https://img.shields.io/badge/status-em%20desenvolvimento-brightgreen?style=for-the-badge"/>
+</p>
 
----
+> Portal de cursos online — interface web construída para consumir a YouCourse API (NestJS + Prisma + AWS S3/CloudFront para hospedagem de vídeos).
 
-## Visão Geral
+## Índice 
+* [Descrição do Projeto](#descrição-do-projeto)
+* [Status do Projeto](#status-do-projeto)
+* [Funcionalidades da Aplicação](#funcionalidades-e-demonstração-da-aplicação)
+* [Acesso ao Projeto](#acesso-ao-projeto)
+* [Tecnologias Utilizadas](#tecnologias-utilizadas)
+* [Arquitetura](#arquitetura)
+* [Pessoas Desenvolvedoras do Projeto](#pessoas-desenvolvedoras-do-projeto)
+* [Licença](#licença)
 
-YouCourse é uma plataforma para criação e consumo de cursos online. Este repositório contém o **frontend** da aplicação, que se comunica com a [YouCourse API](http://localhost:3333/api#/) (NestJS + Prisma).
+## Descrição do Projeto
+YouCourse é uma plataforma para criação e consumo de cursos online. Este repositório contém o frontend da aplicação, focando em performance, responsividade e integração segura com a API backend para gerenciar contas, catálogo de cursos, avaliações e reprodução de vídeos.
 
----
+## Status do Projeto
+<h4 align="center"> 
+  :construction: Projeto em construção :construction:
+</h4>
 
-## Tecnologias
+## Funcionalidades e Demonstração da Aplicação
+# :hammer: Funcionalidades do projeto
+- `Autenticação`: Login, cadastro, refresh token automático e reset de senha via NextAuth.js.
+- `Gerenciamento de Conta`: Edição de perfil(Em breve) e troca de senha.
+- `Gestão de Cursos (CRUD)`: Criar, editar, publicar, despublicar, ocultar e excluir cursos, módulos, e aulas.
+- `Catálogo`: Listagem e busca de cursos disponíveis na plataforma.
+- `Consumo de Conteúdo`: Visualização individual de curso e reprodução de vídeo para as aulas.
 
-| Camada | Biblioteca / Framework |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| UI | MUI v9 + Emotion |
-| Estilos | Tailwind CSS v4 |
-| Autenticação | NextAuth.js v4 |
-| HTTP Client | Fetch nativo (via `lib/http.ts`) |
-| Linguagem | TypeScript 5 |
-| Package Manager | pnpm |
+## Acesso ao Projeto
 
----
-
-## Pré-requisitos
-
+### 📁 Pré-requisitos
 - Node.js ≥ 20
 - pnpm ≥ 9
-- YouCourse API rodando em `http://localhost:3333`
+
+### 🛠️ Abrir e rodar o projeto
+
+1. Clone o repositório.
+2. Crie um arquivo `.env.local` na raiz com as variáveis:
+   ```env
+   NEXT_PUBLIC_API_BASE_URL=[https://youcourse-api.duckdns.org](https://youcourse-api.duckdns.org)
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=sua_chave_secreta_aqui
+   ```
+3. Instale as dependências:
+  ```bash
+  pnpm insrall
+  ```
+4. Inicie o servidor de desenvolvimento:
+ ```bash
+  pnpm dev
+  ```
+
+O servidor local iniciará em http://localhost:3000. Para build de produção, utilize pnpm build seguido de pnpm start.
+
+## 🛠️ Tecnologias utilizadas
+
+| Camada | Tecnologia |
+| :--- | :--- |
+| **Framework** | Next.js 16.2 (App Router) |
+| **Linguagem** | TypeScript 5 |
+| **UI & Estilização** | MUI v9 (Material UI), Emotion, Tailwind CSS v4 |
+| **Autenticação** | NextAuth.js v4 + jwt-decode |
+| **Gerenciamento de Tema** | next-themes |
+| **Testes** | Vitest, React Testing Library |
+| **Cliente HTTP** | Fetch API Nativa (encapsulada em `lib/http.ts` e `lib/http-public.ts`) |
+| **Gerenciador de Pacotes** | pnpm |
 
 ---
 
-## Configuração do Ambiente
+## 🏗️ Arquitetura
 
-Crie um arquivo `.env.local` na raiz do projeto com as seguintes variáveis:
+O projeto utiliza uma arquitetura modular baseada em **Domain-Driven Design (DDD)** simplificado e separação de interesses (Separation of Concerns), estruturada da seguinte forma:
 
-```env
-# URL pública da API (exposta ao browser)
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3333
+### 1. Camada de App (Next.js App Router)
+* **Routes:** Páginas organizadas por domínios (`/courses`, `/manage`, `/profile`, `/auth`).
+* **Providers:** Centralização de contextos globais em `app/providers/` (MUI, Auth e Theme).
+* **Route Handlers:** Implementação do NextAuth em `app/api/auth/[...nextauth]`.
 
-# Configurações do NextAuth
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=sua_chave_secreta_aqui
-```
+### 2. Camada de Componentes (`app/components/`)
+* **Domínios:** Componentes específicos organizados por funcionalidade (`courses/`, `manage/`, `profile/`).
+* **UI Base:** Componentes atômicos e customizações de interface em `ui/`.
+* **State Management:** Uso de **Client Components** para lógica de interação (ex: `CoursePlayerClient.tsx`, `CourseManagerClient.tsx`) e **Server Components** para busca de dados inicial.
 
-> **Nunca** faça commit do `.env.local`. Ele já está no `.gitignore`.
-
----
-
-## Instalação
-
-```bash
-pnpm install
-```
+### 3. Camada de Serviços e Infraestrutura (`lib/`)
+* **Serviços de Domínio:** Lógica de negócio e chamadas à API isoladas por contexto (`auth.service.ts`, `course.service.ts`, `lesson.service.ts`, `unit.service.ts`).
+* **HTTP Clients:**
+    * `http.ts`: Cliente para requisições autenticadas (inclui lógica de token).
+    * `http-public.ts`: Cliente para rotas públicas.
+* **Segurança:** `assert-owner.ts` para validações de permissão e `AuthGuard.tsx` para proteção de rotas no lado do cliente.
 
 ---
 
-## Scripts
+## 👨‍💻 Pessoas Desenvolvedoras do Projeto
 
-```bash
-# Servidor de desenvolvimento com hot-reload
-pnpm dev
+<div align="center">
 
-# Build de produção
-pnpm build
+| [<img src="https://github.com/J-V-S-C.png" width="100px;" style="border-radius:50%;" alt="Foto do João Victor"/><br><sub><b>João Victor Sant'Ana Cortabitart</b></b></sub>](https://github.com/J-V-S-C) |
+| :---: |
 
-# Iniciar servidor de produção (requer build prévio)
-pnpm start
-
-# Lint
-pnpm lint
-```
-
-O servidor de desenvolvimento sobe em [http://localhost:3000](http://localhost:3000).
+</div>
 
 ---
 
-## Estrutura de Pastas
+## 📄 Licença
 
-```
-youcourse-frontend/
-├── app/
-│   ├── api/
-│   │   └── auth/
-│   │       └── [...nextauth]/   # Route handler do NextAuth
-│   ├── components/              # Componentes React reutilizáveis
-│   │   ├── AuthGuard.tsx        # HOC de proteção de rota
-│   │   ├── LoginForm.tsx
-│   │   ├── RegisterForm.tsx
-│   │   ├── ThemeSwitcher.tsx
-│   │   └── ui/                  # Componentes de UI base
-│   ├── login/                   # Página de login
-│   ├── profile/                 # Página de perfil do usuário
-│   ├── register/                # Página de cadastro
-│   ├── providers/
-│   │   └── SessionProvider.tsx  # Provider de sessão do NextAuth
-│   ├── globals.css
-│   ├── layout.tsx               # Root layout (fontes, providers globais)
-│   └── page.tsx                 # Home page
-├── lib/
-│   ├── auth/
-│   │   ├── auth.service.ts      # login(), refreshAccessToken()
-│   │   ├── jwt.ts               # Decodificação do JWT
-│   │   └── types.ts             # Tipos de autenticação (AuthUser, AuthToken…)
-│   ├── user/
-│   │   ├── user.service.ts      # Chamadas relacionadas ao usuário
-│   │   └── types.ts             # Tipos de usuário
-│   └── http.ts                  # Helpers genéricos: get<T>() e post<T>()
-├── types/
-│   └── next-auth.d.ts           # Extensão de tipos do NextAuth
-├── public/                      # Assets estáticos
-├── .env.local                   # Variáveis de ambiente (não versionado)
-├── next.config.ts
-├── tsconfig.json
-└── package.json
-```
-
----
-
-## Arquitetura
-
-### Camada de Serviços (`lib/`)
-
-Toda comunicação com a API é centralizada em `lib/`. Os helpers genéricos `get<T>` e `post<T>` em `lib/http.ts` encapsulam o `fetch` nativo e lançam erros em respostas não-ok.
-
-Serviços específicos (`auth.service.ts`, `user.service.ts`) consomem esses helpers e expõem funções tipadas.
-
-### Autenticação
-
-O fluxo de autenticação usa **NextAuth.js** com uma `CredentialsProvider` customizada:
-
-1. `login()` chama `POST /sessions` na API e recebe `access_token` + `refresh_token`.
-2. O JWT é decodificado via `jwt-decode` para extrair `sub` (ID do usuário) e `exp`.
-3. Quando o `access_token` expira, `refreshAccessToken()` chama `POST /sessions/refresh` automaticamente.
-4. `AuthGuard.tsx` protege rotas que requerem autenticação.
-
-### Temas
-
-O projeto suporta temas claro/escuro via `next-themes`, com persistência de preferência no `localStorage`.
-
----
-
-## API (YouCourse — NestJS)
-
-A API roda localmente em `http://localhost:3333`. Documentação Swagger disponível em [http://localhost:3333/api#/](http://localhost:3333/api#/).
-
-### Endpoints utilizados
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| `POST` | `/sessions` | Autenticação (login) |
-| `POST` | `/sessions/refresh` | Renovação do access token |
-| `POST` | `/accounts` | Cadastro de usuário |
-| `GET` | `/accounts/{id}` | Buscar dados do usuário |
-| `PATCH` | `/accounts/{id}` | Editar dados do usuário |
-| `POST` | `/accounts/password` | Alterar senha |
-| `POST` | `/accounts/password-reset` | Solicitar reset de senha |
-| `GET` | `/courses` | Listar cursos (catálogo) |
-| `POST` | `/courses` | Criar curso |
-| `PUT` | `/courses/{courseId}` | Editar detalhes do curso |
-| `DELETE` | `/courses/{courseId}` | Remover curso |
-| `PATCH` | `/courses/{courseId}/price` | Atualizar preço |
-| `PATCH` | `/courses/{courseId}/publish` | Publicar curso |
-| `PATCH` | `/courses/{courseId}/unpublish` | Despublicar curso |
-| `PATCH` | `/courses/{courseId}/hide` | Ocultar curso |
-| `POST` | `/courses/{courseId}/rating` | Avaliar curso |
-| `PUT` | `/ratings/{ratingId}` | Editar avaliação |
-
----
-
-## Boas Práticas
-
-- **Nenhuma lógica de negócio nos componentes** — toda chamada HTTP fica em `lib/`.
-- **Tipagem estrita** — TypeScript em modo estrito; evitar `any`.
-- **Variáveis de ambiente** — segredos ficam apenas no servidor (`NEXTAUTH_SECRET`); dados públicos usam o prefixo `NEXT_PUBLIC_`.
-- **Proteção de rotas** — rotas autenticadas usam `AuthGuard`.
-- **Tokens** — o refresh automático de JWT é gerenciado pelo NextAuth; nunca armazene tokens no `localStorage` manualmente.
-
----
-
-## Roadmap do Projeto
-
-### Concluído ✅
-- Autenticação (login, cadastro, refresh token, reset de senha)
-- Gerenciamento de conta (edição de perfil, troca de senha)
-- CRUD de cursos (criar, editar, publicar, despublicar, ocultar, excluir)
-- Catálogo de cursos
-- Avaliações (criar, editar)
-- Swagger na API
-
-### Em Andamento / Planejado 🔧
-- [ ] Busca de cursos no catálogo
-- [ ] Visualização individual de curso
-- [ ] Carrinho de compras
-- [ ] Checkout e processamento de pagamento
-- [ ] Pedidos
-- [ ] Entrega de acesso ao conteúdo
-- [ ] Exclusão de avaliação
-- [ ] Assinaturas
-- [ ] Reembolsos
-- [ ] Notificações
-- [ ] Painel administrativo
-- [ ] Internacionalização (i18n)
-- [ ] HTTPS / TLS
-- [ ] Deploy + CD pipeline
-
----
-
-## Contribuindo
-
-1. Crie uma branch a partir de `main`: `git checkout -b feat/minha-feature`
-2. Faça suas alterações seguindo os padrões do projeto
-3. Rode `pnpm lint` antes de abrir o PR
-4. Abra um Pull Request descrevendo as mudanças
-
----
-
-## Licença
-
-Privado — todos os direitos reservados.
+Este projeto está sob a licença [MIT](https://opensource.org/licenses/MIT).
