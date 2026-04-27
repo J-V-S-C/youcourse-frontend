@@ -1,4 +1,5 @@
 # YouCourse Frontend
+<img src="https://img.shields.io/badge/status-em%20desenvolvimento-brightgreen?style=for-the-badge">
 
 > Portal de cursos online — interface web construída com **Next.js 16**, **MUI v9**, **Tailwind CSS v4** e autenticação via **NextAuth.js**.
 
