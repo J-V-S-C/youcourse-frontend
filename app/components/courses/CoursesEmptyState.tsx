@@ -21,7 +21,7 @@ export default function CoursesEmptyState() {
         Nenhum curso disponível ainda
       </Typography>
       <Typography variant="body2" sx={{ color: 'var(--muted)', maxWidth: 380 }}>
-        Em breve novos cursos serão publicados. Volte em breve!
+        Em breve novos cursos serão publicados. Você pode criar o seu próprio curso em Gerenciar Cursos!
       </Typography>
     </Box>
   );
