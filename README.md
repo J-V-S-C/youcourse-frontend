@@ -9,7 +9,7 @@
 ## Índice 
 * [Descrição do Projeto](#descrição-do-projeto)
 * [Status do Projeto](#status-do-projeto)
-* [Funcionalidades e Demonstração da Aplicação](#funcionalidades-e-demonstração-da-aplicação)
+* [Funcionalidades da Aplicação](#funcionalidades-e-demonstração-da-aplicação)
 * [Acesso ao Projeto](#acesso-ao-projeto)
 * [Tecnologias Utilizadas](#tecnologias-utilizadas)
 * [Arquitetura](#arquitetura)
