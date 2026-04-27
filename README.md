@@ -101,8 +101,12 @@ O projeto utiliza uma arquitetura modular baseada em **Domain-Driven Design (DDD
 
 ## 👨‍💻 Pessoas Desenvolvedoras do Projeto
 
-| [<img src="https://github.com/J-V-S-C.png" width=115><br><sub>João Victor Sant'Ana Cortabitart</sub>](https://github.com/J-V-S-C) |
+<div align="center">
+
+| [<img src="https://github.com/J-V-S-C.png" width="100px;" style="border-radius:50%;" alt="Foto do João Victor"/><br><sub><b>João Victor Sant'Ana Cortabitart</b></b></sub>](https://github.com/J-V-S-C) |
 | :---: |
+
+</div>
 
 ---
 
