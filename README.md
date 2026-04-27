@@ -27,13 +27,10 @@ YouCourse é uma plataforma para criação e consumo de cursos online. Este repo
 ## Funcionalidades e Demonstração da Aplicação
 # :hammer: Funcionalidades do projeto
 - `Autenticação`: Login, cadastro, refresh token automático e reset de senha via NextAuth.js.
-- `Gerenciamento de Conta`: Edição de perfil e troca de senha.
-- `Gestão de Cursos (CRUD)`: Criar, editar, publicar, despublicar, ocultar e excluir cursos.
+- `Gerenciamento de Conta`: Edição de perfil(Em breve) e troca de senha.
+- `Gestão de Cursos (CRUD)`: Criar, editar, publicar, despublicar, ocultar e excluir cursos, módulos, e aulas.
 - `Catálogo`: Listagem e busca de cursos disponíveis na plataforma.
 - `Consumo de Conteúdo`: Visualização individual de curso e reprodução de vídeo para as aulas.
-- `Interação`: Criação e edição de avaliações de cursos.
-
-*(Adicione GIFs ou capturas de tela aqui para demonstração visual)*
 
 ## Acesso ao Projeto
 
