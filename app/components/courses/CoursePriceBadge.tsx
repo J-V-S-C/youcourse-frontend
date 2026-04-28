@@ -7,9 +7,11 @@ interface CoursePriceBadgeProps {
   isFree: boolean;
 }
 
+
 export default function CoursePriceBadge({ label, isFree }: CoursePriceBadgeProps) {
   return (
     <Chip
+
       label={label}
       size="small"
       sx={{

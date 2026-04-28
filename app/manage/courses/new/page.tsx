@@ -87,7 +87,7 @@ export default function NewCoursePage() {
                 {sellable && (
                   <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
                     <TextField
-                      label="Preço (Reais)"
+                      label="Preço (centavos)"
                       type="number"
                       value={amount}
                       onChange={(e) => setAmount(Number(e.target.value))}
