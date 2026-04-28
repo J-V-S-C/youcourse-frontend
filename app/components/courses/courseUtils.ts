@@ -19,5 +19,6 @@ export function formatPrice(price: CourseDTO['price']): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: price.currency ?? 'BRL',
-  }).format(price.amount);
+  }).format(price.amount / 100);
+
 }
