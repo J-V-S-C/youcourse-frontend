@@ -1,5 +1,5 @@
-import RegisterForm from '../components/RegisterForm';
 import AuthPageLayout from '../components/auth/AuthPageLayout';
+import RegisterForm from '../components/auth/RegisterForm';
 
 export const metadata = {
   title: 'Cadastrar — YouCourse',

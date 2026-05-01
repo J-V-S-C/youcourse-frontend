@@ -3,10 +3,10 @@
 import { Card, CardActionArea, CardContent, Box, Typography } from '@mui/material';
 import Link from 'next/link';
 import type { CourseDTO } from '@/lib/courses/types';
-import { courseGradient, formatPrice } from './courseUtils';
 import CourseCardThumbnail from './CourseCardThumbnail';
 import CourseRating from './CourseRating';
 import CoursePriceBadge from './CoursePriceBadge';
+import { courseGradient, formatPrice } from '@/app/utils/course-utils';
 
 interface CourseCardProps {
   course: CourseDTO;

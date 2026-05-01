@@ -23,9 +23,14 @@ export function formatDate(dateStr: string | null | undefined): string {
 
 export function getInitials(name: string | null | undefined): string {
   if (!name) return '?';
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((n) => n[0].toUpperCase())
-    .join('');
+
+  const parts = name.trim().split(' ')
+
+  if (parts.length === 1) return parts[0][0].toUpperCase()
+
+  const firstLetter = parts[0][0]
+  const lastLetter = parts[parts.length - 1][0]
+
+
+  return (firstLetter + lastLetter).toUpperCase()
 }

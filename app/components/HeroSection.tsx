@@ -75,7 +75,7 @@ export default function HeroSection() {
           {status === 'authenticated' ? (
             <Button
               component={Link}
-              href="/courses"
+              href="/my-courses"
               variant="contained"
               size="large"
               endIcon={<ArrowForwardIcon />}
@@ -118,7 +118,7 @@ export default function HeroSection() {
 
           <Button
             component={Link}
-            href="#catalogo"
+            href="courses"
             variant="outlined"
             size="large"
             sx={{

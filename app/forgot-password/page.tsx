@@ -1,5 +1,5 @@
 import AuthPageLayout from '../components/auth/AuthPageLayout';
-import ForgotPasswordForm from '../components/ForgotPasswordForm';
+import ForgotPasswordForm from '../components/auth/ForgotPasswordForm';
 
 export const metadata = {
   title: 'Entrar — YouCourse',
