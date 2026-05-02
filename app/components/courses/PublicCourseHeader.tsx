@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Box,
   Container,
@@ -14,6 +16,10 @@ interface PublicCourseHeaderProps {
 
 export default function PublicCourseHeader({ course, isOwner }: PublicCourseHeaderProps) {
   const gradient = courseGradient(course.id);
+
+  const isPaid = !!(course.price && course.price.amount > 0);
+  const isAvailableForPurchase = course.sellable && isPaid;
+  const isComingSoon = !course.sellable && isPaid;
 
   return (
     <Box sx={{ background: gradient, py: { xs: 6, md: 8 }, borderBottom: '1px solid var(--border)' }}>
@@ -40,20 +46,33 @@ export default function PublicCourseHeader({ course, isOwner }: PublicCourseHead
         ) : (
           <Button
             href={
-              course.sellable && course.price && course.price.amount > 0
+              isAvailableForPurchase
                 ? `/purchase-course?courseId=${course.id}`
-                : `/my-courses/${course.id}`
+                : isComingSoon
+                  ? undefined
+                  : `/my-courses/${course.id}`
             }
             variant="contained"
             size="large"
+            disabled={isComingSoon}
             sx={{
-              py: 1.5, px: 4, fontSize: '1.1rem', backgroundColor: 'var(--primary)', color: 'white',
-              '&:hover': { bgcolor: 'color-mix(in srgb, var(--primary), black 15%) ' },
+              py: 1.5, px: 4, fontSize: '1.1rem',
+              backgroundColor: isComingSoon ? 'rgba(255, 255, 255, 0.2)' : 'var(--primary)',
+              color: 'white',
+              cursor: isComingSoon ? 'default' : 'pointer',
+              '&:hover': {
+                bgcolor: isComingSoon ? 'rgba(255, 255, 255, 0.2)' : 'color-mix(in srgb, var(--primary), black 15%)'
+              },
+              '&.Mui-disabled': {
+                color: 'white',
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                opacity: 1 // Mantém o botão bem visível mesmo desativado
+              }
             }}
           >
-            {course.sellable && course.price && course.price.amount > 0
-              ? `Comprar por ${formatPrice(course.price)}`
-              : 'Começar a aprender agora'}
+            {isAvailableForPurchase && `Comprar por ${formatPrice(course.price!)}`}
+            {isComingSoon && 'Disponível em breve para venda'}
+            {!isPaid && 'Começar a aprender agora'}
           </Button>
         )}
       </Container>

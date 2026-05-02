@@ -15,9 +15,10 @@ import {
   CloudUpload,
   VideoCall,
   DeleteSweep,
-  PlayCircleFilled
+  Visibility, // Novo: Para assistir
+  PublishedWithChanges, // Novo: Para substituir/trocar
+  OndemandVideo // Novo: Para indicar presença de vídeo
 } from '@mui/icons-material';
-import { useSession } from 'next-auth/react';
 import type { UnitDTO } from '@/lib/units/types';
 import type { LessonDTO } from '@/lib/lessons/types';
 import { fetchUnits } from '@/lib/units/unit.service';
@@ -31,15 +32,15 @@ import {
   removeVideoFromLesson,
   uploadFileToS3,
 } from '@/lib/lessons/lesson.service';
+import { useRouter } from 'next/navigation';
 
 export default function LessonsTab({ courseId }: { courseId: string }) {
-  const { data: session } = useSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter()
 
   const [units, setUnits] = useState<UnitDTO[]>([]);
   const [selectedUnitId, setSelectedUnitId] = useState<string>('');
   const [lessons, setLessons] = useState<LessonDTO[]>([]);
-
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<LessonDTO | null>(null);
@@ -114,7 +115,6 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (uploadingForId) {
       await processVideoUpload(uploadingForId, file);
     } else {
@@ -128,7 +128,6 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
     try {
       setLoading(true);
       let lessonId: string;
-
       if (editingLesson) {
         await editLesson(editingLesson.id, { name, description, isPreview });
         lessonId = editingLesson.id;
@@ -138,15 +137,14 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
         });
         lessonId = response.id;
       }
-
       if (selectedFile && lessonId) {
         await processVideoUpload(lessonId, selectedFile);
       }
-
       setDialogOpen(false);
       loadLessons(selectedUnitId);
     } catch (err) {
       alert('Erro ao salvar aula');
+      console.error(err)
     } finally {
       setLoading(false);
     }
@@ -169,21 +167,16 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
     if (index === -1) return;
     if (direction === 'up' && index === 0) return;
     if (direction === 'down' && index === lessons.length - 1) return;
-
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-
     const currentLessonId = lessons[index].id;
     const targetLessonId = lessons[targetIndex].id;
     const currentNewPosition = lessons[targetIndex].position;
     const targetNewPosition = lessons[index].position;
 
-    setLessons(prevLessons => {
-      const newLessons = [...prevLessons];
-      const currentLesson = { ...newLessons[index], position: currentNewPosition };
-      const targetLesson = { ...newLessons[targetIndex], position: targetNewPosition };
-      newLessons[index] = targetLesson;
-      newLessons[targetIndex] = currentLesson;
-      return newLessons;
+    setLessons(prev => {
+      const copy = [...prev];
+      [copy[index], copy[targetIndex]] = [copy[targetIndex], copy[index]];
+      return copy.map((l, i) => ({ ...l, position: i }));
     });
 
     try {
@@ -192,7 +185,6 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
         reorderLesson(targetLessonId, { position: targetNewPosition })
       ]);
     } catch (err) {
-      console.error(err);
       if (selectedUnitId) loadLessons(selectedUnitId);
     }
   };
@@ -205,7 +197,7 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
         <Typography variant="h6">Aulas</Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel sx={{ color: 'var(--muted)' }}>Módulo</InputLabel>
+            <InputLabel>Módulo</InputLabel>
             <Select value={selectedUnitId} label="Módulo" onChange={(e) => setSelectedUnitId(e.target.value)}>
               {units.map(u => <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>)}
             </Select>
@@ -225,20 +217,31 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
               <ListItemText
                 primary={
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {lesson.video ? <OndemandVideo fontSize="small" color="primary" /> : null}
                     {lesson.name}
-                    {lesson.isPreview && <Typography variant="caption" color="primary">(Preview)</Typography>}
+                    {lesson.isPreview && <Typography variant="caption" color="primary" sx={{ fontWeight: 'bold' }}>(Preview)</Typography>}
                   </Box>
                 }
                 secondary={lesson.description}
               />
               <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Tooltip title={lesson.video ? "Trocar Vídeo" : "Anexar Vídeo"}>
+                {lesson.video && (
+                  <Tooltip title="Visualizar Vídeo">
+                    <IconButton size="small" color="primary" onClick={
+                      () => router.push(`/courses/${courseId}/lessons/${lesson.id}`)
+                    }>
+                      <Visibility fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+
+                <Tooltip title={lesson.video ? "Substituir Vídeo" : "Anexar Vídeo"}>
                   <IconButton
                     size="small"
                     onClick={() => handleDirectVideoUpload(lesson.id)}
                     sx={{ color: lesson.video ? 'var(--primary)' : 'var(--warning)' }}
                   >
-                    {lesson.video ? <PlayCircleFilled /> : <VideoCall />}
+                    {lesson.video ? <PublishedWithChanges fontSize="small" /> : <VideoCall fontSize="small" />}
                   </IconButton>
                 </Tooltip>
 
@@ -246,11 +249,12 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
 
                 <IconButton size="small" onClick={() => handleReorder(lesson.id, 'up')} disabled={index === 0}><KeyboardArrowUp /></IconButton>
                 <IconButton size="small" onClick={() => handleReorder(lesson.id, 'down')} disabled={index === lessons.length - 1}><KeyboardArrowDown /></IconButton>
-
                 <IconButton size="small" onClick={() => handleOpenDialog(lesson)}><EditIcon fontSize="small" /></IconButton>
 
                 {lesson.video && (
-                  <IconButton size="small" color="warning" onClick={() => handleRemoveVideo(lesson.id)}><DeleteSweep fontSize="small" /></IconButton>
+                  <Tooltip title="Remover Vídeo">
+                    <IconButton size="small" color="warning" onClick={() => handleRemoveVideo(lesson.id)}><DeleteSweep fontSize="small" /></IconButton>
+                  </Tooltip>
                 )}
                 <IconButton size="small" color="error" onClick={() => handleDelete(lesson.id)}><DeleteIcon fontSize="small" /></IconButton>
               </ListItemSecondaryAction>
@@ -282,7 +286,7 @@ export default function LessonsTab({ courseId }: { courseId: string }) {
 
           <FormControlLabel
             control={<Switch checked={isPreview} onChange={(e) => setIsPreview(e.target.checked)} />}
-            label="Preview Público"
+            label="Preview Público (Gratuito)"
           />
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>

@@ -87,9 +87,12 @@ export default function NewCoursePage() {
                 {sellable && (
                   <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
                     <TextField
-                      label="Preço (centavos)"
+                      label="Preço (centavos, mínimo R$1.50)"
                       type="number"
                       value={amount}
+                      onFocus={(e) => {
+                        e.target.select()
+                      }}
                       onChange={(e) => setAmount(Number(e.target.value))}
                       required
                     />
@@ -103,7 +106,7 @@ export default function NewCoursePage() {
                 )}
 
                 <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
-                  <Button variant="contained" color="primary" type="submit" disabled={loading}>
+                  <Button variant="contained" color="primary" type="submit" disabled={loading} sx={{ backgroundColor: 'var(--primary)' }}>
                     {loading ? 'Processando...' : 'Criar Curso'}
                   </Button>
                   <Button variant="outlined" onClick={() => router.back()}>
