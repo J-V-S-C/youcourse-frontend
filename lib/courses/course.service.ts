@@ -9,7 +9,8 @@ import type {
   UpdateCoursePriceDto,
   RateCourseDto,
   EditRatingDto,
-  GetCourseByIdDTO
+  GetCourseByIdDTO,
+  PurchaseCourseResponseDTO
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
@@ -98,4 +99,11 @@ export async function updateCoursePrice(courseId: string, data: UpdateCoursePric
 
 export async function editRating(ratingId: string, data: EditRatingDto): Promise<void> {
   await put(`${API_BASE_URL}/ratings/${ratingId}`, data);
+}
+
+export async function purchaseCourse(courseId: string): Promise<PurchaseCourseResponseDTO> {
+  return post<PurchaseCourseResponseDTO>(
+    `${API_BASE_URL}/courses/${courseId}/purchase`,
+    undefined
+  );
 }

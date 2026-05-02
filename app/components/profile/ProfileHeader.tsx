@@ -1,7 +1,7 @@
 'use client';
 
+import { STATUS_COLORS, STATUS_LABELS } from '@/app/utils/profile-utils';
 import { Avatar, Box, Chip, Typography } from '@mui/material';
-import { STATUS_COLORS, STATUS_LABELS } from '../../profile/utils';
 
 interface ProfileHeaderProps {
   name: string | null | undefined;

@@ -1,3 +1,5 @@
+import type { LessonDTO } from '../lessons/types';
+
 export interface UnitDTO {
   id: string;
   name: string;
@@ -6,6 +8,10 @@ export interface UnitDTO {
   courseId: string;
   createdAt: string;
   updatedAt: string | null;
+}
+
+export interface UnitWithLessons extends UnitDTO {
+  lessons: LessonDTO[];
 }
 
 export interface FetchUnitsResponseDTO {

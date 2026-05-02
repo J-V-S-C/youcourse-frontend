@@ -13,7 +13,7 @@ export default async function CoursesPage({
   searchParams: Promise<{ q?: string; sort?: string }>;
 }) {
   const { q, sort } = await searchParams;
-  const courses = await fetchCourses();
+  const courses = await fetchCourses(); // fetchOwnedCourses
   const sorted = filterAndSortCourses(courses, q, sort);
 
   return (

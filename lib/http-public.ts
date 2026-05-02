@@ -14,7 +14,7 @@ async function publicRequest<T>(
     throw new Error(`HTTP ${res.status}`);
   }
 
-    if (res.status === 204) {
+  if (res.status === 204) {
     return undefined as T;
   }
 

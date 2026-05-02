@@ -58,3 +58,13 @@ export interface EditRatingDto {
   stars: number;
   commentary: string;
 }
+
+export interface PurchaseCourseResponseDTO {
+  paymentUrl: string;
+}
+
+export interface PaymentWebhookDTO {
+  order_nsu: string;
+  transaction_nsu: string;
+  amount: number;
+}

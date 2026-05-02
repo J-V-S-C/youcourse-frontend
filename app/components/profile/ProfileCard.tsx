@@ -5,10 +5,10 @@ import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import type { UserProfileDTO } from '@/lib/user/types';
-import { formatDate, getInitials } from '../../profile/utils';
 import ProfileHeader from './ProfileHeader';
 import ProfileRow from './ProfileRow';
 import ProfileActions from './ProfileActions';
+import { formatDate, getInitials } from '@/app/utils/profile-utils';
 
 interface ProfileCardProps {
   user: UserProfileDTO;

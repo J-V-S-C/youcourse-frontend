@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import { Box, Card, Typography, TextField, Button, Switch, FormControlLabel, Alert, Chip } from '@mui/material';
 import { useRouter } from 'next/navigation';
@@ -22,44 +23,53 @@ export default function CourseDetailsTab({ course }: { course: CourseDTO }) {
   const [sellable, setSellable] = useState(course.sellable);
   const [loading, setLoading] = useState(false);
 
-  const handleSellableChange = (checked: boolean) => {
-    setSellable(checked);
-    if (checked) setVisible(true);
-  };
+  const isPriceInvalid = amount !== 0 && amount < 150;
 
   const handleVisibleChange = (checked: boolean) => {
     setVisible(checked);
     if (!checked) setSellable(false);
   };
 
+  const handleSellableChange = (checked: boolean) => {
+    setSellable(checked);
+    if (checked) setVisible(true);
+  };
+
   const handleUpdateDetails = async () => {
+    if (isPriceInvalid) return;
+
     try {
       setLoading(true);
+
       await editCourse(course.id, { name, description });
+
+      const priceChanged = amount !== course.price?.amount || currency !== course.price?.currency;
+      if (!course.sellable && priceChanged) {
+        await updateCoursePrice(course.id, { price: { amount, currency } });
+      }
 
       if (!visible) {
         if (course.visible || course.sellable) {
           await hideCourse(course.id);
         }
-      } else if (sellable) {
-        if (!course.sellable) {
-          await updateCoursePrice(course.id, { price: { amount, currency } });
-        }
+      }
+      else if (sellable) {
         await publishCourse(course.id, { price: { amount, currency } });
-      } else {
-        if (course.sellable) {
+      }
+      else {
+        if (!course.visible) {
+          await publishCourse(course.id, { price: { amount, currency } });
           await unpublishCourse(course.id);
-        }
-        if (amount !== course.price?.amount || currency !== course.price?.currency) {
-          await updateCoursePrice(course.id, { price: { amount, currency } });
+        } else if (course.sellable) {
+          await unpublishCourse(course.id);
         }
       }
 
-      alert('Detalhes do curso atualizados!');
+      alert('Dados atualizados com sucesso!');
       router.refresh();
     } catch (err) {
       console.error(err);
-      alert('Erro ao atualizar dados do curso.');
+      alert('Erro ao atualizar: ' + (err instanceof Error ? err.message : 'Erro interno no servidor'));
     } finally {
       setLoading(false);
     }
@@ -67,11 +77,21 @@ export default function CourseDetailsTab({ course }: { course: CourseDTO }) {
 
   return (
     <Card sx={{ p: 4, bgcolor: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' }}>
+      {course.sellable && (
+        <Alert icon={<Info fontSize="inherit" />} severity="info" sx={{ mb: 4 }}>
+          Curso em modo <b>Venda Ativa</b>. Para mudar o preço, desmarque &quot;Disponível para venda&quot;, salve, e então edite o valor.
+        </Alert>
+      )}
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6">Informações Básicas</Typography>
+        <Typography variant="h6">Configurações de Publicação</Typography>
         <Chip
           icon={course.visible ? <Visibility fontSize="small" /> : <VisibilityOff fontSize="small" />}
-          label={course.visible ? 'Publicado' : 'Rascunho'}
+          label={
+            course.visible
+              ? `Público ${course.sellable && amount > 0 ? '(Pago)' : '(Grátis)'}`
+              : 'Privado/Rascunho'
+          }
           color={course.visible ? 'success' : 'default'}
           variant="outlined"
         />
@@ -80,60 +100,64 @@ export default function CourseDetailsTab({ course }: { course: CourseDTO }) {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <TextField
           fullWidth
-          label="Nome do Curso"
+          label="Nome"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
+
         <TextField
           fullWidth
           label="Descrição"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
           multiline
           rows={4}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
         />
-        <Box sx={{ display: 'flex', gap: 4 }}>
+
+        <Box sx={{ display: 'flex', gap: 4, p: 2, bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 1 }}>
           <FormControlLabel
             control={<Switch checked={visible} onChange={(e) => handleVisibleChange(e.target.checked)} />}
-            label="Visível no catálogo"
+            label="Visível no Catálogo"
           />
           <FormControlLabel
             control={<Switch checked={sellable} onChange={(e) => handleSellableChange(e.target.checked)} />}
-            label="Cobrar por este curso"
+            label="Disponível para Venda"
           />
         </Box>
 
-        {visible && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                label="Preço (Centavos)"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                disabled={course.sellable}
-                fullWidth
-              />
-              <TextField
-                label="Moeda"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                disabled={course.sellable}
-                sx={{ width: '120px' }}
-              />
-            </Box>
-
-            {course.sellable && (
-              <Alert icon={<Info fontSize="inherit" />} severity="info" sx={{ mt: 1 }}>
-                Despublique o curso para alterar o preço, você pode fazer isso desativando a visibilidade no catálogo e salvando a alteração.
-              </Alert>
-            )}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography variant="caption" sx={{ color: isPriceInvalid ? 'error.main' : 'var(--muted)', ml: 1 }}>
+            * O preço deve ser informado em centavos (Ex: 150 = R$ 1,50). Mínimo de 150 para cursos pagos.
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              label="Preço (Centavos)"
+              type="number"
+              value={amount}
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => setAmount(Number(e.target.value))}
+              disabled={course.sellable}
+              fullWidth
+              error={isPriceInvalid}
+            />
+            <TextField
+              label="Moeda"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              disabled={course.sellable}
+              sx={{ width: '120px' }}
+            />
           </Box>
-        )}
+        </Box>
 
-        <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-          <Button variant="contained" onClick={handleUpdateDetails} disabled={loading} sx={{ px: 4, backgroundColor: 'var(--primary)' }}>
-            {loading ? 'Salvando...' : 'Salvar Alterações'}
+        <Box sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            onClick={handleUpdateDetails}
+            disabled={loading || isPriceInvalid}
+            sx={{ px: 6, py: 1.5, fontWeight: 'bold', backgroundColor: 'var(--primary)' }}
+          >
+            {loading ? 'Processando...' : 'Salvar Alterações'}
           </Button>
         </Box>
       </Box>

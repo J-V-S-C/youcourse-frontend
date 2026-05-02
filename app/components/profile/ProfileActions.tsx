@@ -1,7 +1,7 @@
 'use client';
 
 import { Box } from '@mui/material';
-import LogoutButton from '@/app/components/LogoutButton';
+import LogoutButton from '../auth/LogoutButton';
 
 export default function ProfileActions() {
   return (
