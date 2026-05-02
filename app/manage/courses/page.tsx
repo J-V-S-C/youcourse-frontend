@@ -1,12 +1,10 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { redirect } from 'next/navigation';
 import Navbar from '@/app/components/Navbar';
 import Footer from '@/app/components/Footer';
 import { Box, Container, Typography, Button, Card, CardContent, CardActions, Chip, Grid } from '@mui/material';
-import { fetchCourses, fetchCreatorCourses } from '@/lib/courses/course.service';
+import { fetchCreatorCourses } from '@/lib/courses/course.service';
 import Link from 'next/link';
 import ManageCourseCard from '@/app/components/manage/courses/ManageCourseCard';
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Gerenciar Cursos — YouCourse',
