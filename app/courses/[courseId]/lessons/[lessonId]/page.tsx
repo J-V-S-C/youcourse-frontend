@@ -33,8 +33,6 @@ export default async function LessonPlayerPage({ params }: { params: Promise<{ c
     redirect(`/courses/${courseId}`);
   }
 
-  const isClickable = currentLesson.isPreview && currentLesson.video?.playbackUrl;
-
   return (
     <CoursePlayerClient
       courseId={courseId}

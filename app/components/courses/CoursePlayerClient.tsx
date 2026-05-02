@@ -24,7 +24,8 @@ import {
   Lock,
   Description,
   ArrowBack,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  ChevronLeft // Novo ícone para fechar
 } from '@mui/icons-material';
 
 import { useRouter } from 'next/navigation';
@@ -54,12 +55,11 @@ export default function CoursePlayerClient({
   initialUnitId
 }: CoursePlayerClientProps) {
   const router = useRouter();
-
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(initialUnitId);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(true); // Controla ambos os modos
 
   useEffect(() => {
     setSelectedUnitId(initialUnitId);
@@ -71,20 +71,18 @@ export default function CoursePlayerClient({
 
   const handleLessonClick = (lesson: LessonDTO) => {
     const hasAccess = lesson.isPreview || !!lesson.video;
-
     if (!hasAccess || lesson.id === currentLesson.id) return;
 
     router.push(`/courses/${courseId}/lessons/${lesson.id}`);
-
-    if (isMobile) {
-      setDrawerOpen(false);
-    }
+    if (isMobile) setDrawerOpen(false);
   };
+
+  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
 
-      {/* HEADER */}
+      {/* HEADER - Visível em todos os tamanhos */}
       <Box
         sx={{
           height: NAVBAR_HEIGHT,
@@ -93,19 +91,14 @@ export default function CoursePlayerClient({
           display: 'flex',
           alignItems: 'center',
           px: 2,
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          zIndex: theme.zIndex.drawer + 1 // Fica acima do drawer lateral
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-
-          {isMobile && (
-            <IconButton
-              onClick={() => setDrawerOpen(true)}
-              aria-label="Abrir menu"
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
+          <IconButton onClick={toggleDrawer} aria-label="Menu">
+            <MenuIcon />
+          </IconButton>
 
           <IconButton
             onClick={() => router.push(`/courses/${courseId}`)}
@@ -133,27 +126,26 @@ export default function CoursePlayerClient({
         </Typography>
       </Box>
 
-      {/* CONTENT */}
-      <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
+      <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden', position: 'relative' }}>
 
-        {/* DRAWER */}
         <Drawer
-          variant={isMobile ? 'temporary' : 'permanent'}
-          open={isMobile ? drawerOpen : true}
+          variant={isMobile ? 'temporary' : 'persistent'}
+          open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
-          ModalProps={{ keepMounted: true }}
           sx={{
-            width: DRAWER_WIDTH,
+            width: drawerOpen ? DRAWER_WIDTH : 0,
             flexShrink: 0,
             '& .MuiDrawer-paper': {
               width: DRAWER_WIDTH,
               boxSizing: 'border-box',
               bgcolor: 'var(--surface)',
               borderRight: '1px solid var(--border)',
+              top: NAVBAR_HEIGHT, // Drawer começa abaixo do header no desktop
+              height: `calc(100% - ${NAVBAR_HEIGHT}px)`
             },
           }}
         >
-          <Box sx={{ p: 2 }}>
+          <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
             <FormControl fullWidth size="small">
               <InputLabel id="unit-select-label">Módulo</InputLabel>
               <Select
@@ -184,10 +176,9 @@ export default function CoursePlayerClient({
                   onClick={() => handleLessonClick(lesson)}
                   disabled={!hasAccess}
                   selected={isCurrent}
-                  aria-current={isCurrent ? 'true' : undefined}
                   sx={{
                     alignItems: 'flex-start',
-                    borderLeft: isCurrent ? '4px solid #3f51b5' : '4px solid transparent',
+                    borderLeft: isCurrent ? '4px solid var(--primary)' : '4px solid transparent',
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 36 }}>
@@ -213,7 +204,6 @@ export default function CoursePlayerClient({
           </List>
         </Drawer>
 
-        {/* MAIN */}
         <Box
           component="main"
           sx={{
@@ -221,18 +211,16 @@ export default function CoursePlayerClient({
             display: 'flex',
             flexDirection: 'column',
             bgcolor: '#000',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            transition: theme.transitions.create('margin', {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.leavingScreen,
+            }),
+            // No desktop, empurra o conteúdo se o drawer estiver aberto
+            marginLeft: !isMobile && drawerOpen ? 0 : 0,
           }}
         >
-          {/* VIDEO */}
-          <Box
-            sx={{
-              flexGrow: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             {currentLesson.video?.playbackUrl ? (
               <video
                 key={currentLesson.video.playbackUrl}
@@ -240,16 +228,9 @@ export default function CoursePlayerClient({
                 controlsList="nodownload"
                 autoPlay
                 preload="metadata"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain'
-                }}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               >
-                <source
-                  src={currentLesson.video.playbackUrl}
-                  type="video/mp4"
-                />
+                <source src={currentLesson.video.playbackUrl} type="video/mp4" />
                 Seu navegador não suporta vídeos.
               </video>
             ) : (
@@ -260,7 +241,6 @@ export default function CoursePlayerClient({
             )}
           </Box>
 
-          {/* DESCRIPTION */}
           <Box
             sx={{
               p: 3,
@@ -273,7 +253,6 @@ export default function CoursePlayerClient({
             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
               {currentLesson.name}
             </Typography>
-
             <Typography
               variant="body1"
               sx={{ mt: 2, color: 'var(--muted)', whiteSpace: 'pre-wrap' }}
