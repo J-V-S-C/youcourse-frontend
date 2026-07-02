@@ -1,9 +1,19 @@
 'use client';
 
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import LogoutButton from '../auth/LogoutButton';
+import { useState } from 'react';
+import EditProfileModal from './EditProfileModal';
+import type { UserProfileDTO } from '@/lib/user/types';
 
-export default function ProfileActions() {
+interface ProfileActionsProps {
+  user: UserProfileDTO;
+}
+
+export default function ProfileActions({ user }: ProfileActionsProps) {
+  const [editOpen, setEditOpen] = useState(false);
+
   return (
     <Box
       sx={{
@@ -14,7 +24,27 @@ export default function ProfileActions() {
         flexDirection: { xs: 'column', sm: 'row' },
       }}
     >
+      <Button
+        variant="outlined"
+        startIcon={<EditIcon />}
+        onClick={() => setEditOpen(true)}
+        sx={{
+          borderColor: 'var(--border)',
+          color: 'var(--foreground)',
+          '&:hover': { borderColor: 'var(--primary)', bgcolor: 'rgba(79,70,229,0.05)' },
+        }}
+      >
+        Editar Perfil
+      </Button>
       <LogoutButton />
+
+      {editOpen && (
+        <EditProfileModal
+          user={user}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+        />
+      )}
     </Box>
   );
 }

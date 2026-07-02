@@ -7,6 +7,7 @@ export interface UserProfileDTO {
   status: AccountStatus;
   createdAt: string;
   lastLogin: string | null;
+  paymentHandle: string | null;
 }
 
 export interface GetUserProfileResponse {
@@ -22,4 +23,10 @@ export interface RegisterRequestDTO {
 export interface ChangePasswordDTO {
   token: string;
   newPassword: string;
+}
+
+export interface UpdateProfileDTO {
+  name?: string;
+  email?: string;
+  paymentHandle?: string | null;
 }

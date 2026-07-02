@@ -45,9 +45,15 @@ export default function ProfileCard({ user }: ProfileCardProps) {
           label="Membro desde"
           value={formatDate(user.createdAt)}
         />
+        <Divider sx={{ borderColor: 'var(--border)' }} />
+        <ProfileRow
+          icon={<PersonIcon />} // Using PersonIcon for now
+          label="InfinitePay Handle"
+          value={user.paymentHandle ? `@${user.paymentHandle.replace('@', '')}` : 'Não configurado'}
+        />
       </Box>
 
-      <ProfileActions />
+      <ProfileActions user={user} />
     </Paper>
   );
 }
