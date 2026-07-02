@@ -1,4 +1,4 @@
-import { get, post } from '../http';
+import { get, post, patch } from '../http';
 import { decodeToken } from '../auth/jwt';
 import type {
   GetUserProfileResponse,
@@ -38,4 +38,8 @@ export async function requestPasswordReset(email: string): Promise<void> {
 
 export async function changePassword(data: ChangePasswordDTO): Promise<void> {
   await publicPost(`${API_BASE_URL}/accounts/password`, data);
+}
+
+export async function updateProfile(userId: string, data: { name?: string; email?: string; paymentHandle?: string | null }): Promise<void> {
+  await patch(`${API_BASE_URL}/accounts/${userId}`, data);
 }

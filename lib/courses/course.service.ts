@@ -41,6 +41,19 @@ export async function fetchCreatorCourses(): Promise<CourseDTO[]> {
   }
 }
 
+export async function fetchEnrolledCourses(): Promise<CourseDTO[]> {
+  try {
+    const params = new URLSearchParams({ page: '1', limit: '20' })
+    const response = await get<FetchCoursesResponseDTO>(
+      `${API_BASE_URL}/enrollments/me?${params}`
+    );
+    return response.courses ?? [];
+  } catch (error) {
+    console.error("Erro ao buscar cursos matriculados:", error);
+    return [];
+  }
+}
+
 export async function getPublicCourseById(courseId: string): Promise<CourseDTO | null> {
   try {
     const response = await publicGet<GetCourseByIdDTO>(`${API_BASE_URL}/courses/${courseId}`)

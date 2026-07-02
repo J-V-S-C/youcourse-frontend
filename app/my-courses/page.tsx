@@ -1,11 +1,11 @@
-import { fetchCourses } from '@/lib/courses/course.service';
+import { fetchEnrolledCourses } from '@/lib/courses/course.service';
 import { Box, Container, Typography, Stack } from '@mui/material';
 import SchoolIcon from '@mui/icons-material/School';
 import Navbar from '@/app/components/Navbar';
 import Footer from '@/app/components/Footer';
 import CoursesGrid from '@/app/components/courses/CoursesGrid';
 import CoursesFilter from '@/app/components/courses/CoursesFilter';
-import { filterAndSortCourses } from '@/app/utils/course-utils'; // Assumindo que moveu para utils
+import { filterAndSortCourses } from '@/app/utils/course-utils'; 
 
 export default async function CoursesPage({
   searchParams,
@@ -13,7 +13,7 @@ export default async function CoursesPage({
   searchParams: Promise<{ q?: string; sort?: string }>;
 }) {
   const { q, sort } = await searchParams;
-  const courses = await fetchCourses(); // fetchOwnedCourses
+  const courses = await fetchEnrolledCourses();
   const sorted = filterAndSortCourses(courses, q, sort);
 
   return (

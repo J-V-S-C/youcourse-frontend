@@ -17,13 +17,18 @@ export default function CourseDetailsTab({ course }: { course: CourseDTO }) {
   const router = useRouter();
   const [name, setName] = useState(course.name);
   const [description, setDescription] = useState(course.description);
-  const [amount, setAmount] = useState<number>(course.price?.amount || 0);
+
+  const [priceInput, setPriceInput] = useState<string>(
+    course.price?.amount ? (course.price.amount / 100).toFixed(2) : '0.00'
+  );
   const [currency, setCurrency] = useState(course.price?.currency || 'BRL');
   const [visible, setVisible] = useState(course.visible);
   const [sellable, setSellable] = useState(course.sellable);
   const [loading, setLoading] = useState(false);
 
-  const isPriceInvalid = amount !== 0 && amount < 150;
+  const numericFloatValue = parseFloat(priceInput.replace(',', '.')) || 0;
+
+  const isPriceInvalid = numericFloatValue !== 0 && numericFloatValue < 1.50;
 
   const handleVisibleChange = (checked: boolean) => {
     setVisible(checked);
@@ -38,14 +43,16 @@ export default function CourseDetailsTab({ course }: { course: CourseDTO }) {
   const handleUpdateDetails = async () => {
     if (isPriceInvalid) return;
 
+    const amountInCents = Math.round(numericFloatValue * 100);
+
     try {
       setLoading(true);
 
       await editCourse(course.id, { name, description });
 
-      const priceChanged = amount !== course.price?.amount || currency !== course.price?.currency;
+      const priceChanged = amountInCents !== course.price?.amount || currency !== course.price?.currency;
       if (!course.sellable && priceChanged) {
-        await updateCoursePrice(course.id, { price: { amount, currency } });
+        await updateCoursePrice(course.id, { price: { amount: amountInCents, currency } });
       }
 
       if (!visible) {
@@ -54,18 +61,18 @@ export default function CourseDetailsTab({ course }: { course: CourseDTO }) {
         }
       }
       else if (sellable) {
-        await publishCourse(course.id, { price: { amount, currency } });
+        await publishCourse(course.id, { price: { amount: amountInCents, currency } });
       }
       else {
         if (!course.visible) {
-          await publishCourse(course.id, { price: { amount, currency } });
+          await publishCourse(course.id, { price: { amount: amountInCents, currency } });
           await unpublishCourse(course.id);
         } else if (course.sellable) {
           await unpublishCourse(course.id);
         }
       }
 
-      alert('Dados atualizados com sucesso!');
+      alert('Dados updated com sucesso!');
       router.refresh();
     } catch (err) {
       console.error(err);
@@ -79,7 +86,8 @@ export default function CourseDetailsTab({ course }: { course: CourseDTO }) {
     <Card sx={{ p: 4, bgcolor: 'var(--card)', color: 'var(--foreground)', border: '1px solid var(--border)' }}>
       {course.sellable && (
         <Alert icon={<Info fontSize="inherit" />} severity="info" sx={{ mb: 4 }}>
-          Curso em modo <b>Venda Ativa</b>. Para mudar o preço, desmarque &quot;Disponível para venda&quot;, salve, e então edite o valor.
+          Curso em modo <b>Venda Ativa</b>. Para mudar o preço, desmarque &quot;Disponível para venda&quot;, salve, e então edite o valor.<br />
+          Para receber por esse curso, edite seu perfil e adicione uma conta InfinitePay.
         </Alert>
       )}
 
@@ -89,7 +97,7 @@ export default function CourseDetailsTab({ course }: { course: CourseDTO }) {
           icon={course.visible ? <Visibility fontSize="small" /> : <VisibilityOff fontSize="small" />}
           label={
             course.visible
-              ? `Público ${course.sellable && amount > 0 ? '(Pago)' : '(Grátis)'}`
+              ? `Público ${course.sellable && numericFloatValue > 0 ? '(Pago)' : '(Grátis)'}`
               : 'Privado/Rascunho'
           }
           color={course.visible ? 'success' : 'default'}
@@ -127,15 +135,20 @@ export default function CourseDetailsTab({ course }: { course: CourseDTO }) {
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Typography variant="caption" sx={{ color: isPriceInvalid ? 'error.main' : 'var(--muted)', ml: 1 }}>
-            * O preço deve ser informado em centavos (Ex: 150 = R$ 1,50). Mínimo de 150 para cursos pagos.
+            * Digite o valor em Reais (Ex: 150,00). Mínimo de R$ 1,50 para cursos pagos.
           </Typography>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
-              label="Preço (Centavos)"
-              type="number"
-              value={amount}
+              label="Preço (R$)"
+              type="text"
+              value={priceInput}
               onFocus={(e) => e.target.select()}
-              onChange={(e) => setAmount(Number(e.target.value))}
+              onChange={(e) => setPriceInput(e.target.value)}
+              onBlur={() => {
+                if (!isNaN(numericFloatValue)) {
+                  setPriceInput(numericFloatValue.toFixed(2));
+                }
+              }}
               disabled={course.sellable}
               fullWidth
               error={isPriceInvalid}

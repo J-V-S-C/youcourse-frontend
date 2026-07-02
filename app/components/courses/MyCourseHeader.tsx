@@ -13,8 +13,11 @@ import {
   MenuBookOutlined,
   Star as StarIcon,
   PlayCircleOutlined,
+  RateReviewOutlined,
 } from '@mui/icons-material';
 import Link from 'next/link';
+import { useState } from 'react';
+import RateCourseModal from './RateCourseModal';
 import { courseGradient, formatPrice } from '@/app/utils/course-utils';
 import type { CourseDTO } from '@/lib/courses/types';
 
@@ -32,6 +35,7 @@ export default function MyCourseHeader({
   isOwner,
 }: MyCourseHeaderProps) {
   const gradient = courseGradient(course.id);
+  const [rateOpen, setRateOpen] = useState(false);
 
   return (
     <Box sx={{ background: gradient, py: { xs: 6, md: 8 }, position: 'relative', overflow: 'hidden' }}>
@@ -95,27 +99,56 @@ export default function MyCourseHeader({
           </Box>
 
           {firstLessonUrl && (
-            <Button
-              component={Link}
-              href={firstLessonUrl}
-              variant="contained"
-              size="large"
-              startIcon={<PlayCircleOutlined />}
-              sx={{
-                bgcolor: 'var(--primary)',
-                color: 'white',
-                fontWeight: 700,
-                px: 4,
-                py: 1.5,
-                '&:hover': { bgcolor: 'color-mix(in srgb, var(--primary), black 15%) ' },
-                alignSelf: { xs: 'flex-start', md: 'center' },
-              }}
-            >
-              Começar aula
-            </Button>
+            <Stack direction="row" spacing={2} sx={{ alignSelf: { xs: 'flex-start', md: 'center' } }}>
+              <Button
+                component={Link}
+                href={firstLessonUrl}
+                variant="contained"
+                size="large"
+                startIcon={<PlayCircleOutlined />}
+                sx={{
+                  bgcolor: 'var(--primary)',
+                  color: 'white',
+                  fontWeight: 700,
+                  px: 4,
+                  py: 1.5,
+                  '&:hover': { bgcolor: 'color-mix(in srgb, var(--primary), black 15%) ' },
+                }}
+              >
+                Começar aula
+              </Button>
+
+              {!isOwner && (
+                <Button
+                  variant="outlined"
+                  size="large"
+                  startIcon={<RateReviewOutlined />}
+                  onClick={() => setRateOpen(true)}
+                  sx={{
+                    color: 'white',
+                    borderColor: 'rgba(255,255,255,0.5)',
+                    fontWeight: 700,
+                    px: 3,
+                    py: 1.5,
+                    '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' },
+                  }}
+                >
+                  Avaliar
+                </Button>
+              )}
+            </Stack>
           )}
         </Stack>
       </Container>
+      
+      {rateOpen && (
+        <RateCourseModal
+          courseId={course.id}
+          courseName={course.name}
+          open={rateOpen}
+          onClose={() => setRateOpen(false)}
+        />
+      )}
     </Box>
   );
 }
